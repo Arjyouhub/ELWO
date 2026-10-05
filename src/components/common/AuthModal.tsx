@@ -437,13 +437,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                         style={({ pressed }) => [styles.actionSubmitBtn, pressed && { opacity: 0.9 }]}
                         onPress={handleEmailLogin}
                         disabled={isSubmitting}>
-                        <LinearGradient colors={['#22C55E', '#16A34A']} style={styles.submitBtnGradient}>
+                        <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={styles.submitBtnGradient}>
                           {isSubmitting ? (
-                            <ActivityIndicator size="small" color="#000000" />
+                            <ActivityIndicator size="small" color="#FFFFFF" />
                           ) : (
                             <>
                               <Text style={styles.actionSubmitBtnText}>Log In to ELWO</Text>
-                              <Ionicons name="log-in-outline" size={18} color="#000000" />
+                              <Ionicons name="log-in-outline" size={18} color="#FFFFFF" />
                             </>
                           )}
                         </LinearGradient>
@@ -555,13 +555,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                         style={({ pressed }) => [styles.actionSubmitBtn, pressed && { opacity: 0.9 }]}
                         onPress={handleVerifyOtp}
                         disabled={isSubmitting}>
-                        <LinearGradient colors={['#22C55E', '#16A34A']} style={styles.submitBtnGradient}>
+                        <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={styles.submitBtnGradient}>
                           {isSubmitting ? (
-                            <ActivityIndicator size="small" color="#000000" />
+                            <ActivityIndicator size="small" color="#FFFFFF" />
                           ) : (
                             <>
                               <Text style={styles.actionSubmitBtnText}>Verify & Create Account</Text>
-                              <Ionicons name="checkmark-done-circle-outline" size={18} color="#000000" />
+                              <Ionicons name="checkmark-done-circle-outline" size={18} color="#FFFFFF" />
                             </>
                           )}
                         </LinearGradient>
@@ -1336,7 +1336,7 @@ const styles = StyleSheet.create({
   actionSubmitBtnText: {
     fontSize: 14.5,
     fontWeight: '700',
-    color: '#000000',
+    color: '#FFFFFF',
     letterSpacing: 0.2,
   },
   switchAuthRow: {
