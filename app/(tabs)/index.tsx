@@ -12,7 +12,6 @@ import { useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, Spacing } from '../../src/constants/theme';
 import { ELWOHeader } from '../../src/components/common/ELWOHeader';
-import { ELWOLanguageSelector } from '../../src/components/common/ELWOLanguageSelector';
 import { ELWOSectionHeader } from '../../src/components/common/ELWOSectionHeader';
 import { CompactMusicCard } from '../../src/components/common/CompactMusicCard';
 import { MusicCard } from '../../src/components/common/MusicCard';
@@ -205,13 +204,6 @@ export default function HomeScreen() {
               ? `Guest Pass: ${Math.floor(guestRemainingSeconds / 60)}:${(guestRemainingSeconds % 60) < 10 ? '0' : ''}${guestRemainingSeconds % 60} left`
               : 'Unlimited music • Zero ads'
           }
-        />
-
-        {/* Compact Horizontal Language Selector with Edit Trigger */}
-        <ELWOLanguageSelector
-          selectedLanguage={selectedLanguage}
-          onSelectLanguage={setSelectedLanguage}
-          onOpenPreferences={() => setShowOnboarding(true)}
         />
 
         {/* Nostalgic Kerala Ambience ASMR Soundscape Banner (Shown ONLY when top Ambience button is clicked) */}
