@@ -7,13 +7,17 @@ class EmailService {
   }
 
   initTransporter() {
+    try {
+      require('dotenv').config();
+    } catch {}
+
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
 
     if (user && pass) {
       this.transporter = nodemailer.createTransport({
         service: process.env.SMTP_SERVICE || 'gmail',
-        auth: { user, pass },
+        auth: { user: user.trim(), pass: pass.trim().replace(/\s+/g, '') },
       });
       console.log(`[ELWO EMAIL] SMTP Service initialized with: ${user}`);
     } else {
@@ -34,7 +38,12 @@ class EmailService {
     console.log('[ELWO AUTH OTP] ⏳ Valid for 10 minutes');
     console.log('========================================================\n');
 
-    // 2. If SMTP is configured, send real email
+    // 2. If SMTP is not yet initialized, attempt initialization
+    if (!this.transporter) {
+      this.initTransporter();
+    }
+
+    // 3. If SMTP is configured, send real email
     if (this.transporter) {
       try {
         const mailOptions = {
