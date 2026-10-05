@@ -21,7 +21,13 @@ export interface Track {
   language: MusicLanguage;
   genre: string;
   releaseDate: string;
-  streamUrl?: string; // audio source provided by user later
+  streamUrl?: string; // audio source
+  audioSource?: string;
+  provider?: string;
+  providerTrackId?: string;
+  addedAt?: string;
+  isNew?: boolean;
+  isPublished?: boolean;
   providerId?: string;
   isLiked?: boolean;
   playsCount?: number;

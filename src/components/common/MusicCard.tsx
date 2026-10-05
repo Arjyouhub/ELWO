@@ -40,9 +40,11 @@ export const MusicCard: React.FC<MusicCardProps> = ({ track, badge, onPress }) =
       <View style={[styles.artworkContainer, { height: cardWidth, width: cardWidth }]}>
         <Image source={{ uri: track.artworkUrl }} style={styles.artwork} />
 
-        {badge && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{badge}</Text>
+        {(badge || track.isNew) && (
+          <View style={[styles.badge, (badge === 'NEW' || (!badge && track.isNew)) && styles.newBadge]}>
+            <Text style={[styles.badgeText, (badge === 'NEW' || (!badge && track.isNew)) && styles.newBadgeText]}>
+              {badge || 'NEW'}
+            </Text>
           </View>
         )}
 
@@ -98,6 +100,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.dark.primary,
     letterSpacing: 0.4,
+  },
+  newBadge: {
+    backgroundColor: '#8B5CF6',
+    borderColor: '#A78BFA',
+  },
+  newBadgeText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
   },
   playButton: {
     position: 'absolute',

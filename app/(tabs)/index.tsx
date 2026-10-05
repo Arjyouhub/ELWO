@@ -20,13 +20,16 @@ import { LanguageOnboardingModal } from '../../src/components/common/LanguageOnb
 import { AuthModal } from '../../src/components/common/AuthModal';
 import { HomeSkeleton } from '../../src/components/common/SkeletonLoader';
 import { ChayakadaBanner } from '../../src/components/chayakada/ChayakadaBanner';
-import { MOCK_TRACKS, MOCK_ARTISTS } from '../../src/constants/mockData';
+import { MOCK_ARTISTS } from '../../src/constants/mockData';
 import { MusicLanguage, Track } from '../../src/types/music';
 import { getDisplayFirstName } from '../../src/types/user';
 import { usePlayer } from '../../src/store/PlayerContext';
 import { useAuth } from '../../src/store/AuthContext';
 import { useChayakada } from '../../src/store/ChayakadaContext';
-import { JioSaavnService } from '../../src/services/jiosaavn';
+import {
+  musicCatalogService,
+  HomeCatalogResponse,
+} from '../../src/services/musicCatalogService';
 import { recommendationEngine } from '../../src/services/recommendationEngine';
 
 export default function HomeScreen() {
@@ -38,42 +41,79 @@ export default function HomeScreen() {
   const { playTrack, recentlyPlayed } = usePlayer();
   const { user, isGuest, showAuthModal, guestRemainingSeconds } = useAuth();
   const { refreshLanguagePreference, isBannerVisible } = useChayakada();
-  const [selectedLanguage, setSelectedLanguage] = useState<MusicLanguage>('Malayalam');
+
+  const [preferredLanguages, setPreferredLanguages] = useState<MusicLanguage[]>([
+    'Malayalam',
+  ]);
+  const [homeCatalog, setHomeCatalog] = useState<HomeCatalogResponse | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [dailyTrendingTracks, setDailyTrendingTracks] = useState<Track[]>([]);
-  const [dailyNewReleaseTracks, setDailyNewReleaseTracks] = useState<Track[]>([]);
-  const [isDailyLoading, setIsDailyLoading] = useState(false);
+  const [isLoadingCatalog, setIsLoadingCatalog] = useState(true);
 
-  // Time-aware authenticated greeting (Part 12)
+  // Time-aware authenticated greeting
   const userGreeting = useMemo(() => {
     return getDisplayFirstName(user);
   }, [user]);
 
-  const fetchDailyData = useCallback(async (lang: MusicLanguage) => {
-    setIsDailyLoading(true);
-    try {
-      const [trendingRes, newRelRes] = await Promise.all([
-        JioSaavnService.getDailyTrending(lang, 12),
-        JioSaavnService.getDailyNewReleases(lang, 12),
-      ]);
-      if (trendingRes && trendingRes.length > 0) {
-        setDailyTrendingTracks(trendingRes);
-        recommendationEngine.registerTracks(trendingRes);
-      }
-      if (newRelRes && newRelRes.length > 0) {
-        setDailyNewReleaseTracks(newRelRes);
-        recommendationEngine.registerTracks(newRelRes);
-      }
-    } catch (e) {
-      console.warn('Failed to fetch daily JioSaavn music:', e);
-    } finally {
-      setIsDailyLoading(false);
-      setIsRefreshing(false);
-    }
-  }, []);
+  // Fetch live home catalog from backend MongoDB single source of truth
+  const fetchCatalogData = useCallback(
+    async (langs: MusicLanguage[], forceRefresh: boolean = false) => {
+      try {
+        const catalog = await musicCatalogService.getHomeCatalog(langs, forceRefresh);
+        setHomeCatalog(catalog);
 
-  // Show language onboarding after login page finishes for first-time users
+        // Register all freshly discovered tracks with recommendation engine
+        const allFetchedTracks: Track[] = [
+          ...(catalog.newReleases || []),
+          ...(catalog.newlyAdded || []),
+          ...(catalog.trending || []),
+          ...(catalog.popular || []),
+          ...(catalog.classics || []),
+          ...(catalog.recommended || []),
+        ];
+        recommendationEngine.registerTracks(allFetchedTracks);
+      } catch (e) {
+        console.warn('Failed to fetch music catalog:', e);
+      } finally {
+        setIsLoadingCatalog(false);
+        setIsRefreshing(false);
+      }
+    },
+    []
+  );
+
+  // Load saved language preferences from storage
+  const loadPreferencesAndCatalog = useCallback(
+    async (forceRefresh: boolean = false) => {
+      try {
+        const [savedLangsJson, defaultLang] = await Promise.all([
+          AsyncStorage.getItem('@elwo_languages'),
+          AsyncStorage.getItem('@elwo_default_language'),
+        ]);
+
+        let langs: MusicLanguage[] = ['Malayalam'];
+        if (savedLangsJson) {
+          try {
+            const parsed = JSON.parse(savedLangsJson);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              langs = parsed;
+            }
+          } catch {}
+        } else if (defaultLang) {
+          langs = [defaultLang as MusicLanguage];
+        }
+
+        setPreferredLanguages(langs);
+        recommendationEngine.setLanguagePreference(langs);
+        await fetchCatalogData(langs, forceRefresh);
+      } catch {
+        fetchCatalogData(['Malayalam'], forceRefresh);
+      }
+    },
+    [fetchCatalogData]
+  );
+
+  // Check onboarding status on mount or when auth modal closes
   useEffect(() => {
     if (!showAuthModal) {
       AsyncStorage.getItem('@elwo_language_onboarded')
@@ -81,32 +121,22 @@ export default function HomeScreen() {
           if (!onboarded) {
             setShowOnboarding(true);
           } else {
-            AsyncStorage.getItem('@elwo_default_language').then((savedDefault) => {
-              if (savedDefault) {
-                const lang = savedDefault as MusicLanguage;
-                setSelectedLanguage(lang);
-                fetchDailyData(lang);
-              }
-            });
+            loadPreferencesAndCatalog(false);
             refreshLanguagePreference();
           }
         })
-        .catch(() => {});
+        .catch(() => {
+          loadPreferencesAndCatalog(false);
+        });
     }
-  }, [showAuthModal, refreshLanguagePreference, fetchDailyData]);
+  }, [showAuthModal, refreshLanguagePreference, loadPreferencesAndCatalog]);
 
-  // Sync default language whenever returning from Profile or other tabs
+  // Re-check catalog when user navigates back to Home screen
   useFocusEffect(
     useCallback(() => {
-      AsyncStorage.getItem('@elwo_default_language').then((savedDefault) => {
-        if (savedDefault && savedDefault !== selectedLanguage) {
-          const lang = savedDefault as MusicLanguage;
-          setSelectedLanguage(lang);
-          fetchDailyData(lang);
-        }
-      });
+      loadPreferencesAndCatalog(false);
       refreshLanguagePreference();
-    }, [selectedLanguage, refreshLanguagePreference, fetchDailyData])
+    }, [loadPreferencesAndCatalog, refreshLanguagePreference])
   );
 
   const handleOnboardingComplete = async (
@@ -114,7 +144,7 @@ export default function HomeScreen() {
     defaultLang: MusicLanguage
   ) => {
     setShowOnboarding(false);
-    setSelectedLanguage(defaultLang);
+    setPreferredLanguages(selectedLanguages);
     recommendationEngine.setLanguagePreference(selectedLanguages);
 
     try {
@@ -127,55 +157,70 @@ export default function HomeScreen() {
     } catch {}
 
     await refreshLanguagePreference();
-    fetchDailyData(defaultLang);
+    musicCatalogService.invalidateCache();
+    fetchCatalogData(selectedLanguages, true);
   };
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchDailyData(selectedLanguage);
-    }, 0);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [selectedLanguage, fetchDailyData]);
-
+  // Pull-to-refresh: Force live re-fetch from MongoDB catalog
   const onRefresh = useCallback(() => {
     setIsRefreshing(true);
-    fetchDailyData(selectedLanguage);
-  }, [selectedLanguage, fetchDailyData]);
+    musicCatalogService.invalidateCache();
+    fetchCatalogData(preferredLanguages, true);
+  }, [preferredLanguages, fetchCatalogData]);
 
-  // Filter pool based on selected language
-  const availableTracks = useMemo(() => {
-    const base = dailyTrendingTracks.length > 0 ? dailyTrendingTracks : MOCK_TRACKS;
-    if (selectedLanguage === 'All') return base;
-    return base.filter((t) => t.language === selectedLanguage);
-  }, [selectedLanguage, dailyTrendingTracks]);
+  // Track pools from live catalog
+  const newReleasesTracks = useMemo(
+    () => homeCatalog?.newReleases || [],
+    [homeCatalog]
+  );
+  const newlyAddedTracks = useMemo(
+    () => homeCatalog?.newlyAdded || [],
+    [homeCatalog]
+  );
+  const trendingTracks = useMemo(
+    () => homeCatalog?.trending || [],
+    [homeCatalog]
+  );
+  const popularTracks = useMemo(
+    () => homeCatalog?.popular || [],
+    [homeCatalog]
+  );
+  const classicsTracks = useMemo(
+    () => homeCatalog?.classics || [],
+    [homeCatalog]
+  );
 
   // 1. "Made for you" — Personalized weighted recommendation scoring
   const madeForYouTracks = useMemo(() => {
-    return recommendationEngine.getMadeForYou(availableTracks, 8);
-  }, [availableTracks]);
+    const base = [
+      ...(homeCatalog?.recommended || []),
+      ...newlyAddedTracks,
+      ...trendingTracks,
+    ];
+    return recommendationEngine.getMadeForYou(base.length > 0 ? base : undefined, 8);
+  }, [homeCatalog, newlyAddedTracks, trendingTracks]);
 
-  // 3. "Fresh drops" — Latest releases
-  const freshDropTracks = useMemo(() => {
-    if (dailyNewReleaseTracks.length > 0) {
-      return dailyNewReleaseTracks.slice(0, 10);
-    }
-    return recommendationEngine.getFreshDrops(availableTracks, 10);
-  }, [dailyNewReleaseTracks, availableTracks]);
-
-  // 4. "Your vibe" — Genre and mood cluster from profile
+  // 2. "Your vibe" — Genre and mood cluster from profile
   const yourVibeTracks = useMemo(() => {
-    return recommendationEngine.getYourVibe(availableTracks, 8);
-  }, [availableTracks]);
+    const base = [
+      ...(homeCatalog?.recommended || []),
+      ...trendingTracks,
+      ...popularTracks,
+    ];
+    return recommendationEngine.getYourVibe(base.length > 0 ? base : undefined, 8);
+  }, [homeCatalog, trendingTracks, popularTracks]);
 
-  // 5. "Artists you may like"
+  // 3. Recommended Artists
   const recommendedArtists = useMemo(() => {
+    if (homeCatalog?.artists && homeCatalog.artists.length > 0) {
+      return homeCatalog.artists.slice(0, 8);
+    }
     return MOCK_ARTISTS.slice(0, 8);
-  }, []);
+  }, [homeCatalog]);
 
-  if (isDailyLoading && dailyTrendingTracks.length === 0) {
+  const languagesLabel = preferredLanguages.join(' & ');
+
+  if (isLoadingCatalog && !homeCatalog) {
     return (
       <View style={[styles.safeArea, { paddingTop: topInset }]}>
         <HomeSkeleton />
@@ -205,12 +250,14 @@ export default function HomeScreen() {
           greeting={userGreeting}
           subtitle={
             isGuest
-              ? `Guest Pass: ${Math.floor(guestRemainingSeconds / 60)}:${(guestRemainingSeconds % 60) < 10 ? '0' : ''}${guestRemainingSeconds % 60} left`
-              : 'Unlimited music • Zero ads'
+              ? `Guest Pass: ${Math.floor(guestRemainingSeconds / 60)}:${
+                  guestRemainingSeconds % 60 < 10 ? '0' : ''
+                }${guestRemainingSeconds % 60} left`
+              : `${languagesLabel} • Unlimited live music`
           }
         />
 
-        {/* Nostalgic Kerala Ambience ASMR Soundscape Banner (Shown ONLY when top Ambience button is clicked) */}
+        {/* Nostalgic Kerala Ambience ASMR Soundscape Banner */}
         {isBannerVisible && <ChayakadaBanner />}
 
         {/* 1. Recently Listened */}
@@ -218,7 +265,7 @@ export default function HomeScreen() {
           <>
             <ELWOSectionHeader
               title="Recently Listened"
-              subtitle="Your recent listening"
+              subtitle="Continue where you left off"
             />
             <ScrollView
               horizontal
@@ -236,91 +283,204 @@ export default function HomeScreen() {
           </>
         )}
 
-        {/* 2. Made for you */}
-        <ELWOSectionHeader
-          title="Made for you"
-          subtitle="Tuned to your taste"
-        />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalRow}
-          bounces={false}>
-          {madeForYouTracks.map((track) => (
-            <MusicCard
-              key={`mfy-${track.id}`}
-              track={track}
-              badge={track.language}
-              onPress={() => playTrack(track, madeForYouTracks)}
+        {/* 2. New Releases (Sorted by releaseDate DESC with [NEW] Badge) */}
+        {newReleasesTracks.length > 0 && (
+          <>
+            <ELWOSectionHeader
+              title="New Releases"
+              subtitle={`Fresh tracks released in ${languagesLabel}`}
             />
-          ))}
-        </ScrollView>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalRow}
+              bounces={false}>
+              {newReleasesTracks.map((track) => (
+                <MusicCard
+                  key={`new-rel-${track.id}`}
+                  track={track}
+                  badge="NEW"
+                  onPress={() => playTrack(track, newReleasesTracks)}
+                />
+              ))}
+            </ScrollView>
+          </>
+        )}
 
-        {/* 3. Fresh Drops */}
-        <ELWOSectionHeader
-          title="Fresh Drops"
-          subtitle={`Latest ${selectedLanguage !== 'All' ? selectedLanguage : ''} releases`}
-        />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalRow}
-          bounces={false}>
-          {freshDropTracks.map((track) => (
-            <MusicCard
-              key={`fresh-drop-${track.id}`}
-              track={track}
-              badge="NEW"
-              onPress={() => playTrack(track, freshDropTracks)}
+        {/* 3. Newly Added (Sorted by addedAt DESC - Latest additions to ELWO) */}
+        {newlyAddedTracks.length > 0 && (
+          <>
+            <ELWOSectionHeader
+              title="Newly Added"
+              subtitle="Latest additions to the ELWO catalog"
             />
-          ))}
-        </ScrollView>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalRow}
+              bounces={false}>
+              {newlyAddedTracks.map((track) => (
+                <MusicCard
+                  key={`new-add-${track.id}`}
+                  track={track}
+                  badge={track.isNew ? 'NEW' : track.language}
+                  onPress={() => playTrack(track, newlyAddedTracks)}
+                />
+              ))}
+            </ScrollView>
+          </>
+        )}
 
-        {/* 4. Your Vibe */}
-        <ELWOSectionHeader
-          title="Your Vibe"
-          subtitle="Custom mix aligned with your listening style"
-        />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalRow}
-          bounces={false}>
-          {yourVibeTracks.map((track) => (
-            <MusicCard
-              key={`vibe-${track.id}`}
-              track={track}
-              badge={track.genre}
-              onPress={() => playTrack(track, yourVibeTracks)}
+        {/* 4. Trending Now */}
+        {trendingTracks.length > 0 && (
+          <>
+            <ELWOSectionHeader
+              title="Trending Now"
+              subtitle={`Most played ${languagesLabel} hits`}
             />
-          ))}
-        </ScrollView>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalRow}
+              bounces={false}>
+              {trendingTracks.map((track) => (
+                <MusicCard
+                  key={`trend-${track.id}`}
+                  track={track}
+                  badge={track.language}
+                  onPress={() => playTrack(track, trendingTracks)}
+                />
+              ))}
+            </ScrollView>
+          </>
+        )}
 
-        {/* 5. Recommended Artists */}
-        <ELWOSectionHeader
-          title="Recommended Artists"
-          subtitle="Expand your musical horizons"
-        />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalRow}
-          bounces={false}>
-          {recommendedArtists.map((artist) => (
-            <ArtistCard key={`artist-${artist.id}`} artist={artist} />
-          ))}
-        </ScrollView>
+        {/* 5. Community Favorites / Popular */}
+        {popularTracks.length > 0 && (
+          <>
+            <ELWOSectionHeader
+              title="Popular Hits"
+              subtitle="Most loved by ELWO listeners"
+            />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalRow}
+              bounces={false}>
+              {popularTracks.map((track) => (
+                <MusicCard
+                  key={`pop-${track.id}`}
+                  track={track}
+                  badge={track.genre}
+                  onPress={() => playTrack(track, popularTracks)}
+                />
+              ))}
+            </ScrollView>
+          </>
+        )}
+
+        {/* 6. Classics & Nostalgia (Preserving Old Songs) */}
+        {classicsTracks.length > 0 && (
+          <>
+            <ELWOSectionHeader
+              title="Classics & Nostalgia"
+              subtitle="Timeless golden tracks and evergreen melodies"
+            />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalRow}
+              bounces={false}>
+              {classicsTracks.map((track) => (
+                <MusicCard
+                  key={`classic-${track.id}`}
+                  track={track}
+                  badge={track.year || 'Classic'}
+                  onPress={() => playTrack(track, classicsTracks)}
+                />
+              ))}
+            </ScrollView>
+          </>
+        )}
+
+        {/* 7. Made for you (Recommendation Engine) */}
+        {madeForYouTracks.length > 0 && (
+          <>
+            <ELWOSectionHeader
+              title="Made for you"
+              subtitle="Personalized recommendations tuned to your taste"
+            />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalRow}
+              bounces={false}>
+              {madeForYouTracks.map((track) => (
+                <MusicCard
+                  key={`mfy-${track.id}`}
+                  track={track}
+                  badge={track.language}
+                  onPress={() => playTrack(track, madeForYouTracks)}
+                />
+              ))}
+            </ScrollView>
+          </>
+        )}
+
+        {/* 8. Your Vibe */}
+        {yourVibeTracks.length > 0 && (
+          <>
+            <ELWOSectionHeader
+              title="Your Vibe"
+              subtitle="Custom mix aligned with your listening style"
+            />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalRow}
+              bounces={false}>
+              {yourVibeTracks.map((track) => (
+                <MusicCard
+                  key={`vibe-${track.id}`}
+                  track={track}
+                  badge={track.genre}
+                  onPress={() => playTrack(track, yourVibeTracks)}
+                />
+              ))}
+            </ScrollView>
+          </>
+        )}
+
+        {/* 9. Recommended Artists */}
+        {recommendedArtists.length > 0 && (
+          <>
+            <ELWOSectionHeader
+              title="Recommended Artists"
+              subtitle="Expand your musical horizons"
+            />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalRow}
+              bounces={false}>
+              {recommendedArtists.map((artist) => (
+                <ArtistCard key={`artist-${artist.id}`} artist={artist} />
+              ))}
+            </ScrollView>
+          </>
+        )}
 
         {/* Bottom space ensuring final row scrolls completely clear of MiniPlayer */}
         <View style={{ height: 160 }} />
       </ScrollView>
 
-      {/* Welcome & Authentication Modal (Google / Guest) */}
+      {/* Welcome & Authentication Modal */}
       <AuthModal
         visible={showAuthModal}
         onLanguageSelected={(lang) => {
-          setSelectedLanguage(lang);
-          fetchDailyData(lang);
+          const langs = [lang];
+          setPreferredLanguages(langs);
+          fetchCatalogData(langs, true);
         }}
       />
 

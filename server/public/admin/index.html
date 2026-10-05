@@ -930,8 +930,45 @@
       }
       .topbar h1 {
         font-size: 15px;
-      }
+    .music-subtab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
     }
+    .music-subtab:hover {
+      color: #fff;
+    }
+    .music-subtab.active {
+      background: var(--card-border);
+      color: #fff;
+    }
+    .track-thumb {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #1e2233;
+    }
+    .lang-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .lang-Malayalam { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .lang-Tamil { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .lang-Hindi { background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3); }
+    .lang-English { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .status-published { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .status-draft { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
   </style>
 </head>
 <body>
@@ -996,6 +1033,167 @@
     </div>
   </div>
 
+  <!-- Add Song Modal -->
+  <div id="modal-add-song" class="modal-overlay">
+    <div class="modal-box" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3>Add Track to Live Catalog</h3>
+        <button class="modal-close-btn" onclick="closeAddSongModal()">✕</button>
+      </div>
+      <form id="add-song-form" onsubmit="handleAddSongSubmit(event)">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div class="form-group" style="grid-column: span 2;">
+            <label class="form-label">Song Title *</label>
+            <input type="text" id="song-title" class="form-input" placeholder="e.g. Illuminati" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Artist Name *</label>
+            <input type="text" id="song-artist" class="form-input" placeholder="e.g. Sushin Shyam, Dabzee" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Album / Movie</label>
+            <input type="text" id="song-album" class="form-input" placeholder="e.g. Aavesham">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Language *</label>
+            <select id="song-language" class="form-input" style="background: #090a0f;">
+              <option value="Malayalam">Malayalam</option>
+              <option value="Tamil">Tamil</option>
+              <option value="Hindi">Hindi</option>
+              <option value="English">English</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Genre</label>
+            <input type="text" id="song-genre" class="form-input" placeholder="e.g. Hip-Hop / Soundtrack">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Release Date (YYYY-MM-DD)</label>
+            <input type="date" id="song-release-date" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration (Seconds)</label>
+            <input type="number" id="song-duration" class="form-input" value="195" min="10">
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label class="form-label">Audio Stream URL (Direct 320kbps / MP4 / AAC) *</label>
+            <input type="url" id="song-stream-url" class="form-input" placeholder="https://aac.saavncdn.com/..." required>
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label class="form-label">Cover Artwork URL (500x500)</label>
+            <input type="url" id="song-artwork-url" class="form-input" placeholder="https://c.saavncdn.com/...">
+          </div>
+          <div class="form-group" style="grid-column: span 2; display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="song-publish" checked style="width: 18px; height: 18px; accent-color: var(--accent);">
+            <label for="song-publish" style="font-size: 14px; color: #fff; cursor: pointer;">Publish Immediately (Available to Mobile App)</label>
+          </div>
+        </div>
+        <div class="modal-actions" style="margin-top: 10px;">
+          <button type="button" class="btn-secondary" onclick="closeAddSongModal()">Cancel</button>
+          <button type="submit" class="btn-primary" style="width: auto; padding: 10px 24px;">Publish Song</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Song Modal -->
+  <div id="modal-edit-song" class="modal-overlay">
+    <div class="modal-box" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3>Edit Track Metadata</h3>
+        <button class="modal-close-btn" onclick="closeEditSongModal()">✕</button>
+      </div>
+      <form id="edit-song-form" onsubmit="handleEditSongSubmit(event)">
+        <input type="hidden" id="edit-song-id">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div class="form-group" style="grid-column: span 2;">
+            <label class="form-label">Song Title *</label>
+            <input type="text" id="edit-song-title" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Artist Name *</label>
+            <input type="text" id="edit-song-artist" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Album / Movie</label>
+            <input type="text" id="edit-song-album" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Language *</label>
+            <select id="edit-song-language" class="form-input" style="background: #090a0f;">
+              <option value="Malayalam">Malayalam</option>
+              <option value="Tamil">Tamil</option>
+              <option value="Hindi">Hindi</option>
+              <option value="English">English</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Genre</label>
+            <input type="text" id="edit-song-genre" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Release Date</label>
+            <input type="date" id="edit-song-release-date" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration (Seconds)</label>
+            <input type="number" id="edit-song-duration" class="form-input" min="10">
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label class="form-label">Audio Stream URL</label>
+            <input type="url" id="edit-song-stream-url" class="form-input" required>
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label class="form-label">Cover Artwork URL</label>
+            <input type="url" id="edit-song-artwork-url" class="form-input">
+          </div>
+          <div class="form-group" style="grid-column: span 2; display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="edit-song-publish" style="width: 18px; height: 18px; accent-color: var(--accent);">
+            <label for="edit-song-publish" style="font-size: 14px; color: #fff; cursor: pointer;">Published (Visible in Mobile App)</label>
+          </div>
+        </div>
+        <div class="modal-actions" style="margin-top: 10px;">
+          <button type="button" class="btn-secondary" onclick="closeEditSongModal()">Cancel</button>
+          <button type="submit" class="btn-primary" style="width: auto; padding: 10px 24px;">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Sync Result Modal -->
+  <div id="modal-sync-result" class="modal-overlay">
+    <div class="modal-box" style="max-width: 480px; text-align: center;">
+      <div style="font-size: 42px; margin-bottom: 8px;">🔄</div>
+      <h3 style="margin-bottom: 4px;">Live Catalog Sync Completed</h3>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">
+        Scanned provider catalog and updated MongoDB live state without duplicate tracks.
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; text-align: left;">
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--card-border); padding: 12px; border-radius: 8px;">
+          <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Tracks Scanned</span>
+          <div style="font-size: 20px; font-weight: 700; color: #fff;" id="sync-res-scanned">0</div>
+        </div>
+        <div style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); padding: 12px; border-radius: 8px;">
+          <span style="font-size: 11px; color: #22c55e; text-transform: uppercase;">New Songs Added</span>
+          <div style="font-size: 20px; font-weight: 700; color: #22c55e;" id="sync-res-added">0</div>
+        </div>
+        <div style="background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.3); padding: 12px; border-radius: 8px;">
+          <span style="font-size: 11px; color: #60a5fa; text-transform: uppercase;">Metadata Updated</span>
+          <div style="font-size: 20px; font-weight: 700; color: #60a5fa;" id="sync-res-updated">0</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--card-border); padding: 12px; border-radius: 8px;">
+          <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Skipped (Duplicates)</span>
+          <div style="font-size: 20px; font-weight: 700; color: #fff;" id="sync-res-skipped">0</div>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; font-size: 12px; color: var(--text-muted);">
+        <span>Execution Time: <b id="sync-res-time" style="color: #fff;">--</b></span>
+        <span>Errors: <b id="sync-res-errors" style="color: #22c55e;">0</b></span>
+      </div>
+      <button class="btn-primary" onclick="closeSyncModal()">Done & View Catalog</button>
+    </div>
+  </div>
+
   <!-- Sidebar -->
   <aside id="sidebar">
     <div class="sidebar-brand">
@@ -1010,6 +1208,7 @@
     </div>
     <ul class="sidebar-menu">
       <li class="menu-item active" onclick="navigateTab('dashboard')">📊 Dashboard</li>
+      <li class="menu-item" onclick="navigateTab('music')">🎵 Music Catalog</li>
       <li class="menu-item" onclick="navigateTab('users')">👥 Users</li>
       <li class="menu-item" onclick="navigateTab('subscriptions')">💳 Subscriptions</li>
       <li class="menu-item" onclick="navigateTab('payments')">💰 Payments</li>
@@ -1223,6 +1422,111 @@
         </div>
       </section>
 
+      <!-- MUSIC CATALOG TAB -->
+      <section id="section-music" style="display: none;">
+        <!-- Music Metrics Row -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-header"><span class="metric-label">Total Tracks in Catalog</span></div>
+            <div class="metric-value" id="m-music-total">--</div>
+            <div class="metric-footer"><span class="trend-up" id="m-music-live">MongoDB Live Catalog</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-header"><span class="metric-label">Published Songs</span></div>
+            <div class="metric-value" id="m-music-published" style="color: #22c55e;">--</div>
+            <div class="metric-footer"><span>Live on Mobile App</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-header"><span class="metric-label">Drafts / Unpublished</span></div>
+            <div class="metric-value" id="m-music-draft" style="color: #f59e0b;">--</div>
+            <div class="metric-footer"><span>Hidden from users</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-header"><span class="metric-label">New Added Today</span></div>
+            <div class="metric-value" id="m-music-today" style="color: #8b5cf6;">--</div>
+            <div class="metric-footer"><span>Auto-tagged with [NEW]</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-header"><span class="metric-label">New This Week</span></div>
+            <div class="metric-value" id="m-music-week" style="color: #60a5fa;">--</div>
+            <div class="metric-footer"><span>Last 7 days additions</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-header"><span class="metric-label">Catalog Last Sync</span></div>
+            <div class="metric-value" id="m-music-last-sync" style="font-size: 17px; line-height: 32px; color: #fff;">--</div>
+            <div class="metric-footer"><span>Every 30m Auto-Sync</span></div>
+          </div>
+        </div>
+
+        <!-- Music Toolbar -->
+        <div class="table-card">
+          <div class="table-header-row" style="flex-wrap: wrap; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <h3 style="margin: 0; margin-right: 12px;">Live Music Catalog</h3>
+              <div style="display: inline-flex; background: #090a0f; border: 1px solid var(--card-border); border-radius: 8px; padding: 3px; gap: 3px;">
+                <button class="music-subtab active" onclick="setMusicTab('all', this)">All</button>
+                <button class="music-subtab" onclick="setMusicTab('published', this)">Published</button>
+                <button class="music-subtab" onclick="setMusicTab('drafts', this)">Drafts</button>
+                <button class="music-subtab" onclick="setMusicTab('new', this)">New</button>
+                <button class="music-subtab" onclick="setMusicTab('updated', this)">Updated</button>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <select id="music-lang-filter" class="form-input" onchange="filterMusicLanguage(this.value)" style="width: auto; padding: 8px 12px; font-size: 13px; background: #090a0f;">
+                <option value="All">All Languages</option>
+                <option value="Malayalam">Malayalam</option>
+                <option value="Tamil">Tamil</option>
+                <option value="Hindi">Hindi</option>
+                <option value="English">English</option>
+              </select>
+
+              <input type="text" id="music-search-input" class="form-input" placeholder="Search track, artist, album..." oninput="debounceMusicSearch(this.value)" style="width: 220px; padding: 8px 14px; font-size: 13px;">
+
+              <button class="btn-primary" id="btn-sync-now" onclick="triggerCatalogSync()" style="width: auto; padding: 9px 18px; font-size: 13px; background: #8b5cf6; color: #fff;">
+                <span id="sync-icon">🔄</span> <span id="sync-text">Sync Now</span>
+              </button>
+
+              <button class="btn-primary" onclick="openAddSongModal()" style="width: auto; padding: 9px 18px; font-size: 13px;">
+                ➕ Add Song
+              </button>
+            </div>
+          </div>
+
+          <!-- Catalog Table -->
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 50px;">Track</th>
+                  <th>Title</th>
+                  <th>Artist</th>
+                  <th>Album</th>
+                  <th>Language</th>
+                  <th>Release Date</th>
+                  <th>Added to ELWO</th>
+                  <th>Plays</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="music-tbody">
+                <tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding: 24px;">Loading catalog tracks...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-top: 1px solid var(--card-border);">
+            <div style="font-size: 13px; color: var(--text-muted);" id="music-pagination-info">Showing tracks</div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-secondary" id="music-btn-prev" onclick="changeMusicPage(-1)" style="padding: 6px 14px; font-size: 12px;">← Previous</button>
+              <button class="btn-secondary" id="music-btn-next" onclick="changeMusicPage(1)" style="padding: 6px 14px; font-size: 12px;">Next →</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- AUDIT LOGS TAB -->
       <section id="section-audit" style="display: none;">
         <div class="table-card">
@@ -1338,7 +1642,7 @@
     }
 
     function switchTab(tabId) {
-      const sections = ['dashboard', 'users', 'subscriptions', 'payments', 'coupons', 'system', 'audit'];
+      const sections = ['dashboard', 'music', 'users', 'subscriptions', 'payments', 'coupons', 'system', 'audit'];
       sections.forEach(s => {
         const sec = document.getElementById(`section-${s}`);
         if (sec) sec.style.display = s === tabId ? 'block' : 'none';
@@ -1352,6 +1656,7 @@
 
       const titles = {
         dashboard: 'Real-Time Executive Dashboard',
+        music: 'Live Music Catalog & Auto-Sync Engine',
         users: 'User Management & Access Control',
         subscriptions: 'Google Play Subscriptions',
         payments: 'Verified Billing & Revenue',
@@ -1362,6 +1667,7 @@
       document.getElementById('page-title').innerText = titles[tabId] || 'Admin Console';
 
       if (tabId === 'dashboard') loadDashboardMetrics();
+      else if (tabId === 'music') { loadMusicStats(); loadMusicCatalog(); }
       else if (tabId === 'users') loadUsers('All');
       else if (tabId === 'subscriptions') loadSubscriptions();
       else if (tabId === 'payments') loadPayments();
@@ -1721,6 +2027,313 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    }
+
+    // ----------------------------------------------------
+    // MUSIC CATALOG JAVASCRIPT MANAGEMENT
+    // ----------------------------------------------------
+    let currentMusicTab = 'all';
+    let currentMusicLang = 'All';
+    let currentMusicSearch = '';
+    let currentMusicPage = 1;
+    let musicSearchDebounceTimer = null;
+    let allTracksCache = {};
+
+    function setMusicTab(tab, btn) {
+      currentMusicTab = tab;
+      currentMusicPage = 1;
+      document.querySelectorAll('.music-subtab').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      loadMusicCatalog();
+    }
+
+    function filterMusicLanguage(lang) {
+      currentMusicLang = lang;
+      currentMusicPage = 1;
+      loadMusicCatalog();
+    }
+
+    function debounceMusicSearch(val) {
+      clearTimeout(musicSearchDebounceTimer);
+      musicSearchDebounceTimer = setTimeout(() => {
+        currentMusicSearch = val;
+        currentMusicPage = 1;
+        loadMusicCatalog();
+      }, 300);
+    }
+
+    function changeMusicPage(delta) {
+      currentMusicPage = Math.max(1, currentMusicPage + delta);
+      loadMusicCatalog();
+    }
+
+    async function loadMusicStats() {
+      try {
+        const data = await apiFetch('/api/music/admin/stats');
+        if (data.success && data.stats) {
+          const s = data.stats;
+          document.getElementById('m-music-total').innerText = (s.totalTracks || 0).toLocaleString();
+          document.getElementById('m-music-published').innerText = (s.publishedTracks || 0).toLocaleString();
+          document.getElementById('m-music-draft').innerText = (s.draftTracks || 0).toLocaleString();
+          document.getElementById('m-music-today').innerText = `+${s.newToday || 0} today`;
+          document.getElementById('m-music-week').innerText = `+${s.newThisWeek || 0} this week`;
+          if (s.lastSync) {
+            const timeAgo = formatTimeAgo(new Date(s.lastSync.completedAt || s.lastSync.startedAt));
+            document.getElementById('m-music-last-sync').innerText = timeAgo;
+          } else {
+            document.getElementById('m-music-last-sync').innerText = 'Never';
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load music stats:', err);
+      }
+    }
+
+    function formatTimeAgo(date) {
+      const now = new Date();
+      const diffSec = Math.floor((now - date) / 1000);
+      if (diffSec < 60) return 'Just now';
+      if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+      if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+      return `${Math.floor(diffSec / 86400)}d ago`;
+    }
+
+    async function loadMusicCatalog() {
+      const tbody = document.getElementById('music-tbody');
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding: 24px;">Loading catalog tracks...</td></tr>`;
+
+      try {
+        const queryParams = new URLSearchParams({
+          tab: currentMusicTab,
+          language: currentMusicLang,
+          search: currentMusicSearch,
+          page: currentMusicPage,
+          limit: 15,
+        });
+
+        const data = await apiFetch(`/api/music/admin/tracks?${queryParams.toString()}`);
+        if (!data.success || !data.tracks || data.tracks.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding: 28px;">No songs found matching current filter.</td></tr>`;
+          document.getElementById('music-pagination-info').innerText = '0 tracks';
+          document.getElementById('music-btn-prev').disabled = true;
+          document.getElementById('music-btn-next').disabled = true;
+          return;
+        }
+
+        allTracksCache = {};
+        data.tracks.forEach(t => { allTracksCache[t._id] = t; });
+
+        tbody.innerHTML = data.tracks.map(t => {
+          const isPublished = t.isPublished !== false;
+          const statusClass = isPublished ? 'status-published' : 'status-draft';
+          const statusLabel = isPublished ? 'Published' : 'Draft';
+          const langClass = `lang-${t.language || 'Malayalam'}`;
+          const isNew = t.isNew;
+          const addedFormatted = t.addedAt ? new Date(t.addedAt).toLocaleDateString() : '--';
+
+          return `
+            <tr>
+              <td>
+                <img src="${escapeHtml(t.artworkUrl || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=100')}" class="track-thumb" alt="art" onerror="this.src='https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=100'">
+              </td>
+              <td>
+                <div style="font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px;">
+                  ${escapeHtml(t.title)}
+                  ${isNew ? '<span style="background: rgba(139,92,246,0.25); color: #a78bfa; border: 1px solid rgba(139,92,246,0.4); font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 4px;">NEW</span>' : ''}
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(t.genre || 'Film')}</div>
+              </td>
+              <td style="color: #cbd5e1;">${escapeHtml(t.artistName)}</td>
+              <td style="color: var(--text-muted); font-size: 13px;">${escapeHtml(t.albumTitle || '--')}</td>
+              <td><span class="lang-badge ${langClass}">${t.language}</span></td>
+              <td style="color: var(--text-muted); font-size: 12px; white-space: nowrap;">${t.releaseDate || '--'}</td>
+              <td style="color: var(--text-muted); font-size: 12px; white-space: nowrap;">${addedFormatted}</td>
+              <td style="color: #94a3b8; font-size: 12px;">${(t.playCount || 0).toLocaleString()}</td>
+              <td><span class="lang-badge ${statusClass}">${statusLabel}</span></td>
+              <td style="text-align: right; white-space: nowrap;">
+                <button class="btn-secondary" onclick="togglePublish('${t._id}')" style="padding: 4px 10px; font-size: 11px; margin-right: 4px;">
+                  ${isPublished ? 'Unpublish' : 'Publish'}
+                </button>
+                <button class="btn-secondary" onclick="openEditSongModal('${t._id}')" style="padding: 4px 10px; font-size: 11px; margin-right: 4px;">
+                  Edit
+                </button>
+                <button class="btn-secondary" onclick="deleteSong('${t._id}')" style="padding: 4px 8px; font-size: 11px; color: var(--danger);">
+                  ✕
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        const pag = data.pagination || { page: 1, limit: 15, total: data.tracks.length, totalPages: 1 };
+        document.getElementById('music-pagination-info').innerText =
+          `Page ${pag.page} of ${pag.totalPages} (${pag.total} total tracks)`;
+        document.getElementById('music-btn-prev').disabled = pag.page <= 1;
+        document.getElementById('music-btn-next').disabled = pag.page >= pag.totalPages;
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--danger); padding: 24px;">Failed to load catalog: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    async function triggerCatalogSync() {
+      const btn = document.getElementById('btn-sync-now');
+      const icon = document.getElementById('sync-icon');
+      const text = document.getElementById('sync-text');
+
+      btn.disabled = true;
+      icon.innerText = '⏳';
+      text.innerText = 'Syncing...';
+
+      try {
+        const data = await apiFetch('/api/music/admin/sync', { method: 'POST' });
+        if (data.success && data.result) {
+          const r = data.result;
+          document.getElementById('sync-res-scanned').innerText = r.tracksScanned || 0;
+          document.getElementById('sync-res-added').innerText = r.tracksAdded || 0;
+          document.getElementById('sync-res-updated').innerText = r.tracksUpdated || 0;
+          document.getElementById('sync-res-skipped').innerText = r.tracksSkipped || 0;
+          document.getElementById('sync-res-time').innerText = `${((r.durationMs || 0) / 1000).toFixed(1)}s`;
+          document.getElementById('sync-res-errors').innerText = r.tracksFailed || 0;
+
+          document.getElementById('modal-sync-result').style.display = 'flex';
+          loadMusicStats();
+          loadMusicCatalog();
+        } else {
+          alert('Sync failed: ' + (data.message || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Sync error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        icon.innerText = '🔄';
+        text.innerText = 'Sync Now';
+      }
+    }
+
+    function closeSyncModal() {
+      document.getElementById('modal-sync-result').style.display = 'none';
+    }
+
+    function openAddSongModal() {
+      document.getElementById('add-song-form').reset();
+      document.getElementById('song-release-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('modal-add-song').style.display = 'flex';
+    }
+
+    function closeAddSongModal() {
+      document.getElementById('modal-add-song').style.display = 'none';
+    }
+
+    async function handleAddSongSubmit(e) {
+      e.preventDefault();
+      const body = {
+        title: document.getElementById('song-title').value.trim(),
+        artistName: document.getElementById('song-artist').value.trim(),
+        albumTitle: document.getElementById('song-album').value.trim() || undefined,
+        language: document.getElementById('song-language').value,
+        genre: document.getElementById('song-genre').value.trim() || 'Film',
+        releaseDate: document.getElementById('song-release-date').value || new Date().toISOString().split('T')[0],
+        duration: parseInt(document.getElementById('song-duration').value, 10) || 195,
+        streamUrl: document.getElementById('song-stream-url').value.trim(),
+        artworkUrl: document.getElementById('song-artwork-url').value.trim() || undefined,
+        isPublished: document.getElementById('song-publish').checked,
+      };
+
+      try {
+        const res = await apiFetch('/api/music/admin/tracks', {
+          method: 'POST',
+          body: JSON.stringify(body),
+        });
+        if (res.success) {
+          closeAddSongModal();
+          loadMusicStats();
+          loadMusicCatalog();
+        } else {
+          alert(res.message || 'Failed to add song');
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    function openEditSongModal(id) {
+      const track = allTracksCache[id];
+      if (!track) return;
+      document.getElementById('edit-song-id').value = id;
+      document.getElementById('edit-song-title').value = track.title || '';
+      document.getElementById('edit-song-artist').value = track.artistName || '';
+      document.getElementById('edit-song-album').value = track.albumTitle || '';
+      document.getElementById('edit-song-language').value = track.language || 'Malayalam';
+      document.getElementById('edit-song-genre').value = track.genre || '';
+      document.getElementById('edit-song-release-date').value = track.releaseDate || '';
+      document.getElementById('edit-song-duration').value = track.duration || 180;
+      document.getElementById('edit-song-stream-url').value = track.streamUrl || '';
+      document.getElementById('edit-song-artwork-url').value = track.artworkUrl || '';
+      document.getElementById('edit-song-publish').checked = track.isPublished !== false;
+      document.getElementById('modal-edit-song').style.display = 'flex';
+    }
+
+    function closeEditSongModal() {
+      document.getElementById('modal-edit-song').style.display = 'none';
+    }
+
+    async function handleEditSongSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-song-id').value;
+      const body = {
+        title: document.getElementById('edit-song-title').value.trim(),
+        artistName: document.getElementById('edit-song-artist').value.trim(),
+        albumTitle: document.getElementById('edit-song-album').value.trim() || undefined,
+        language: document.getElementById('edit-song-language').value,
+        genre: document.getElementById('edit-song-genre').value.trim(),
+        releaseDate: document.getElementById('edit-song-release-date').value,
+        duration: parseInt(document.getElementById('edit-song-duration').value, 10),
+        streamUrl: document.getElementById('edit-song-stream-url').value.trim(),
+        artworkUrl: document.getElementById('edit-song-artwork-url').value.trim(),
+        isPublished: document.getElementById('edit-song-publish').checked,
+      };
+
+      try {
+        const res = await apiFetch(`/api/music/admin/tracks/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(body),
+        });
+        if (res.success) {
+          closeEditSongModal();
+          loadMusicStats();
+          loadMusicCatalog();
+        } else {
+          alert(res.message || 'Failed to update song');
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    async function togglePublish(id) {
+      try {
+        const res = await apiFetch(`/api/music/admin/tracks/${id}/publish`, { method: 'PATCH' });
+        if (res.success) {
+          loadMusicStats();
+          loadMusicCatalog();
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    async function deleteSong(id) {
+      if (!confirm('Are you sure you want to delete this track from the catalog?')) return;
+      try {
+        const res = await apiFetch(`/api/music/admin/tracks/${id}`, { method: 'DELETE' });
+        if (res.success) {
+          loadMusicStats();
+          loadMusicCatalog();
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
     }
   </script>
 </body>

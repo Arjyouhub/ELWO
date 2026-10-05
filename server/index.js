@@ -15,6 +15,9 @@ const couponRoutes = require('./routes/couponRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const webhookRoutes = require('./routes/webhookRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const musicRoutes = require('./routes/musicRoutes');
+const { migrateBaselineCatalog } = require('./services/catalogMigration');
+const musicSyncService = require('./services/musicSyncService');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -42,6 +45,7 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/music', musicRoutes);
 
 // Health Endpoint
 app.get('/api/health', (req, res) => {
@@ -91,6 +95,8 @@ async function seedDefaultAdmin() {
 async function startServer() {
   await connectDB();
   await seedDefaultAdmin();
+  await migrateBaselineCatalog();
+  musicSyncService.startScheduledSync();
 
   app.listen(PORT, () => {
     console.log(`[ELWO BACKEND] Server running on http://localhost:${PORT}`);

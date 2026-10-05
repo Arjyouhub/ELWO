@@ -29,6 +29,8 @@ import {
 import { useLibrary } from '../../src/store/LibraryContext';
 import { usePlayer } from '../../src/store/PlayerContext';
 import { JioSaavnService } from '../../src/services/jiosaavn';
+import { musicCatalogService } from '../../src/services/musicCatalogService';
+import { recommendationEngine } from '../../src/services/recommendationEngine';
 import { Track } from '../../src/types/music';
 
 type SearchFilterTab = 'All' | 'Songs' | 'Artists' | 'Albums' | 'Playlists';
@@ -93,12 +95,32 @@ export default function SearchScreen() {
     let isCurrent = true;
     const timer = setTimeout(() => {
       setIsSearchingOnline(true);
-      JioSaavnService.searchSongs(debouncedQuery, 25)
-        .then((tracks) => {
-          if (isCurrent) {
-            setOnlineTracks(tracks);
-            setIsSearchingOnline(false);
+      Promise.allSettled([
+        musicCatalogService.searchTracks(debouncedQuery, undefined, 25),
+        JioSaavnService.searchSongs(debouncedQuery, 25),
+      ])
+        .then(([catalogRes, jioRes]) => {
+          if (!isCurrent) return;
+          const catalogTracks =
+            catalogRes.status === 'fulfilled' ? catalogRes.value : [];
+          const jioTracks =
+            jioRes.status === 'fulfilled' ? jioRes.value : [];
+
+          const seen = new Set<string>();
+          const merged: Track[] = [];
+
+          // Prioritize backend catalog tracks first
+          for (const t of [...catalogTracks, ...jioTracks]) {
+            const key = (t.title + '_' + t.artistName).toLowerCase();
+            if (!seen.has(key)) {
+              seen.add(key);
+              merged.push(t);
+            }
           }
+
+          setOnlineTracks(merged);
+          recommendationEngine.registerTracks(merged);
+          setIsSearchingOnline(false);
         })
         .catch(() => {
           if (isCurrent) {
