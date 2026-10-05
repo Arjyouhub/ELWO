@@ -83,7 +83,9 @@ export default function HomeScreen() {
           } else {
             AsyncStorage.getItem('@elwo_default_language').then((savedDefault) => {
               if (savedDefault) {
-                setSelectedLanguage(savedDefault as MusicLanguage);
+                const lang = savedDefault as MusicLanguage;
+                setSelectedLanguage(lang);
+                fetchDailyData(lang);
               }
             });
             refreshLanguagePreference();
@@ -91,18 +93,20 @@ export default function HomeScreen() {
         })
         .catch(() => {});
     }
-  }, [showAuthModal, refreshLanguagePreference]);
+  }, [showAuthModal, refreshLanguagePreference, fetchDailyData]);
 
   // Sync default language whenever returning from Profile or other tabs
   useFocusEffect(
     useCallback(() => {
       AsyncStorage.getItem('@elwo_default_language').then((savedDefault) => {
         if (savedDefault && savedDefault !== selectedLanguage) {
-          setSelectedLanguage(savedDefault as MusicLanguage);
+          const lang = savedDefault as MusicLanguage;
+          setSelectedLanguage(lang);
+          fetchDailyData(lang);
         }
       });
       refreshLanguagePreference();
-    }, [selectedLanguage, refreshLanguagePreference])
+    }, [selectedLanguage, refreshLanguagePreference, fetchDailyData])
   );
 
   const handleOnboardingComplete = async (

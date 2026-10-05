@@ -330,6 +330,22 @@ class RecommendationEngine {
   getRecommendedArtists(count: number = 6) {
     return MOCK_ARTISTS.slice(0, count);
   }
+
+  // Reset listening profile completely for a new user with their chosen languages
+  resetForNewUser(languages: MusicLanguage[]) {
+    this.profile = {
+      likedTrackIds: new Set<string>(),
+      likedArtistIds: new Set<string>(),
+      recentlyPlayedTrackIds: [],
+      recentlySkippedTrackIds: [],
+      playCountByTrackId: {},
+      playCountByArtistId: {},
+      playCountByGenre: {},
+      playCountByLanguage: {},
+      languagePreferences: languages && languages.length > 0 ? languages : ['Malayalam'],
+    };
+    AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
+  }
 }
 
 export const recommendationEngine = new RecommendationEngine();

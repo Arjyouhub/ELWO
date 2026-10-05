@@ -20,6 +20,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../../constants/theme';
 import { useAuth } from '../../store/AuthContext';
+import { usePlayer } from '../../store/PlayerContext';
+import { useLibrary } from '../../store/LibraryContext';
 import { MusicLanguage } from '../../types/music';
 import { recommendationEngine } from '../../services/recommendationEngine';
 
@@ -53,6 +55,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
     setShowAuthModal,
     isGuestExpired,
   } = useAuth();
+  const { clearRecentlyPlayed } = usePlayer();
+  const { clearLibrary } = useLibrary();
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState<'auth' | 'language'>('auth');
   const [selectedLanguages, setSelectedLanguages] = useState<MusicLanguage[]>([]);
@@ -245,17 +249,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
   };
 
   const handleFinishLanguage = async () => {
-    if (selectedLanguages.length === 0) return;
-    const defaultLang = selectedLanguages[0];
+    const finalLanguages = (selectedLanguages.length > 0 ? selectedLanguages : ['Malayalam']) as MusicLanguage[];
+    const defaultLang = finalLanguages[0] || 'Malayalam';
 
     try {
-      await completeOnboarding(selectedLanguages);
+      await completeOnboarding(finalLanguages);
       await AsyncStorage.setItem('@elwo_default_language', defaultLang);
-      await AsyncStorage.setItem('@elwo_languages', JSON.stringify(selectedLanguages));
+      await AsyncStorage.setItem('@elwo_languages', JSON.stringify(finalLanguages));
       await AsyncStorage.setItem('@elwo_language_onboarded', 'true');
+      // Wipe old listen history & favorites so the new user starts completely fresh
+      await AsyncStorage.multiRemove([
+        '@elwo_recently_played',
+        '@elwo_liked_tracks_list',
+        '@elwo_user_listening_profile',
+      ]);
     } catch {}
 
-    recommendationEngine.setLanguagePreference(selectedLanguages);
+    recommendationEngine.resetForNewUser(finalLanguages);
+    clearRecentlyPlayed();
+    clearLibrary();
 
     if (onLanguageSelected) {
       onLanguageSelected(defaultLang);
@@ -326,41 +338,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                   <View style={styles.ambienceCardsRow}>
                     {/* Card 1: Tea Stall */}
                     <LinearGradient
-                      colors={['rgba(139, 92, 246, 0.18)', 'rgba(30, 27, 75, 0.45)']}
+                      colors={['rgba(139, 92, 246, 0.22)', 'rgba(30, 27, 75, 0.6)']}
                       style={[styles.ambientCard, styles.ambientCardTea]}>
-                      <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(139, 92, 246, 0.25)' }]}>
-                        <Ionicons name="cafe" size={15} color="#C4B5FD" />
+                      <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(139, 92, 246, 0.3)' }]}>
+                        <Ionicons name="cafe" size={18} color="#C4B5FD" />
                       </View>
-                      <View style={styles.ambientCardTextWrap}>
-                        <Text style={styles.ambientCardName} numberOfLines={1}>Tea Stall</Text>
-                        <Text style={styles.ambientCardDesc} numberOfLines={1}>Rain & Chai</Text>
-                      </View>
+                      <Text style={styles.ambientCardName}>Tea Stall</Text>
+                      <Text style={styles.ambientCardDesc}>Rain & Chai</Text>
                     </LinearGradient>
 
                     {/* Card 2: Bus Travel */}
                     <LinearGradient
-                      colors={['rgba(59, 130, 246, 0.18)', 'rgba(24, 34, 69, 0.45)']}
+                      colors={['rgba(59, 130, 246, 0.22)', 'rgba(24, 34, 69, 0.6)']}
                       style={[styles.ambientCard, styles.ambientCardBus]}>
-                      <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(59, 130, 246, 0.25)' }]}>
-                        <Ionicons name="bus" size={15} color="#93C5FD" />
+                      <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(59, 130, 246, 0.3)' }]}>
+                        <Ionicons name="bus" size={18} color="#93C5FD" />
                       </View>
-                      <View style={styles.ambientCardTextWrap}>
-                        <Text style={styles.ambientCardName} numberOfLines={1}>Bus Travel</Text>
-                        <Text style={styles.ambientCardDesc} numberOfLines={1}>KSRTC Rain</Text>
-                      </View>
+                      <Text style={styles.ambientCardName}>Bus Travel</Text>
+                      <Text style={styles.ambientCardDesc}>KSRTC Rain</Text>
                     </LinearGradient>
 
                     {/* Card 3: Train */}
                     <LinearGradient
-                      colors={['rgba(16, 185, 129, 0.18)', 'rgba(20, 50, 45, 0.45)']}
+                      colors={['rgba(16, 185, 129, 0.22)', 'rgba(20, 50, 45, 0.6)']}
                       style={[styles.ambientCard, styles.ambientCardTrain]}>
-                      <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(16, 185, 129, 0.25)' }]}>
-                        <Ionicons name="train" size={15} color="#6EE7B7" />
+                      <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(16, 185, 129, 0.3)' }]}>
+                        <Ionicons name="train" size={18} color="#6EE7B7" />
                       </View>
-                      <View style={styles.ambientCardTextWrap}>
-                        <Text style={styles.ambientCardName} numberOfLines={1}>Train</Text>
-                        <Text style={styles.ambientCardDesc} numberOfLines={1}>Rail Rhythm</Text>
-                      </View>
+                      <Text style={styles.ambientCardName}>Train</Text>
+                      <Text style={styles.ambientCardDesc}>Rail Rhythm</Text>
                     </LinearGradient>
                   </View>
                 </View>
@@ -381,35 +387,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                   </View>
                 )}
 
-                {/* 1. Email Auth Card (Log In / Sign Up with Free OTP) */}
+                {/* 1. Email Auth Card (Log In / Sign Up) */}
                 <View style={styles.emailAuthCard}>
-                  {/* Segmented Mode Tabs */}
-                  <View style={styles.segmentedTabBar}>
-                    <Pressable
-                      style={[styles.segmentedTab, authTab === 'login' && styles.segmentedTabActive]}
-                      onPress={() => {
-                        setAuthTab('login');
-                        setErrorMessage(null);
-                        setSuccessMessage(null);
-                      }}>
-                      <Text style={[styles.segmentedTabText, authTab === 'login' && styles.segmentedTabTextActive]}>
-                        Log In
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      style={[styles.segmentedTab, authTab === 'signup' && styles.segmentedTabActive]}
-                      onPress={() => {
-                        setAuthTab('signup');
-                        setSignupStep('details');
-                        setErrorMessage(null);
-                        setSuccessMessage(null);
-                      }}>
-                      <Text style={[styles.segmentedTabText, authTab === 'signup' && styles.segmentedTabTextActive]}>
-                        Sign Up
-                      </Text>
-                    </Pressable>
-                  </View>
-
                   {/* Feedback Banners */}
                   {errorMessage && (
                     <View style={styles.errorAlertBox}>
@@ -468,6 +447,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                           )}
                         </LinearGradient>
                       </Pressable>
+
+                      {/* Don't have an account? Sign Up */}
+                      <View style={styles.switchAuthRow}>
+                        <Text style={styles.switchAuthText}>Don&apos;t have an account? </Text>
+                        <Pressable
+                          onPress={() => {
+                            setAuthTab('signup');
+                            setSignupStep('details');
+                            setErrorMessage(null);
+                            setSuccessMessage(null);
+                          }}
+                          hitSlop={8}>
+                          <Text style={styles.switchAuthLink}>Sign Up</Text>
+                        </Pressable>
+                      </View>
                     </View>
                   ) : signupStep === 'details' ? (
                     /* SIGN UP - DETAILS FORM */
@@ -523,6 +517,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                           )}
                         </LinearGradient>
                       </Pressable>
+
+                      {/* Already have an account? Log In */}
+                      <View style={styles.switchAuthRow}>
+                        <Text style={styles.switchAuthText}>Already have an account? </Text>
+                        <Pressable
+                          onPress={() => {
+                            setAuthTab('login');
+                            setErrorMessage(null);
+                            setSuccessMessage(null);
+                          }}
+                          hitSlop={8}>
+                          <Text style={styles.switchAuthLink}>Log In</Text>
+                        </Pressable>
+                      </View>
                     </View>
                   ) : (
                     /* SIGN UP - OTP VERIFICATION FORM */
@@ -871,46 +879,46 @@ const styles = StyleSheet.create({
   },
   ambientCard: {
     flex: 1,
-    borderRadius: 12,
-    paddingVertical: 7,
-    paddingHorizontal: 8,
-    flexDirection: 'row',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
     alignItems: 'center',
-    gap: 7,
+    justifyContent: 'center',
     borderWidth: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
   ambientCardTea: {
-    borderColor: 'rgba(139, 92, 246, 0.35)',
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    borderColor: 'rgba(139, 92, 246, 0.4)',
   },
   ambientCardBus: {
-    borderColor: 'rgba(59, 130, 246, 0.35)',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderColor: 'rgba(59, 130, 246, 0.4)',
   },
   ambientCardTrain: {
-    borderColor: 'rgba(16, 185, 129, 0.35)',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    borderColor: 'rgba(16, 185, 129, 0.4)',
   },
   ambientCardIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  ambientCardTextWrap: {
-    flex: 1,
-    justifyContent: 'center',
+    marginBottom: 6,
   },
   ambientCardName: {
-    fontSize: 11.5,
-    fontWeight: '700',
+    fontSize: 12.5,
+    fontWeight: '800',
     color: '#FFFFFF',
-    letterSpacing: 0.1,
+    letterSpacing: 0.2,
+    textAlign: 'center',
+    marginBottom: 2,
   },
   ambientCardDesc: {
-    fontSize: 9.5,
-    color: '#94A3B8',
-    marginTop: 1,
-    fontWeight: '500',
+    fontSize: 10,
+    color: '#CBD5E1',
+    fontWeight: '600',
+    textAlign: 'center',
   },
   actionSection: {
     width: '100%',
@@ -1329,6 +1337,24 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#000000',
     letterSpacing: 0.2,
+  },
+  switchAuthRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    paddingVertical: 2,
+  },
+  switchAuthText: {
+    fontSize: 13,
+    color: '#94A3B8',
+    fontWeight: '500',
+  },
+  switchAuthLink: {
+    fontSize: 13,
+    color: '#A78BFA',
+    fontWeight: '800',
+    textDecorationLine: 'underline',
   },
   errorAlertBox: {
     flexDirection: 'row',

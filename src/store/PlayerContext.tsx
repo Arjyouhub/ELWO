@@ -53,6 +53,7 @@ interface PlayerContextType {
   toggleLikeCurrentTrack: () => void;
   addToQueue: (track: Track) => void;
   setVolume: (volume: number) => void;
+  clearRecentlyPlayed: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -514,6 +515,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setQueue((prev) => [...prev, track]);
   };
 
+  const clearRecentlyPlayed = useCallback(() => {
+    setRecentlyPlayed([]);
+    AsyncStorage.removeItem('@elwo_recently_played').catch(() => {});
+  }, []);
+
   return (
     <PlayerContext.Provider
       value={{
@@ -543,6 +549,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         toggleLikeCurrentTrack,
         addToQueue,
         setVolume,
+        clearRecentlyPlayed,
       }}>
       {children}
     </PlayerContext.Provider>

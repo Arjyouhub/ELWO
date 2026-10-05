@@ -24,6 +24,7 @@ interface LibraryContextType {
   addSearchQuery: (query: string) => void;
   removeSearchQuery: (query: string) => void;
   clearSearchHistory: () => void;
+  clearLibrary: () => void;
 }
 
 const LibraryContext = createContext<LibraryContextType | undefined>(undefined);
@@ -32,9 +33,7 @@ const PLAYLISTS_STORAGE_KEY = '@elwo_user_playlists';
 const LIKED_TRACKS_STORAGE_KEY = '@elwo_liked_tracks_list';
 
 export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [likedTracks, setLikedTracks] = useState<Track[]>(
-    MOCK_TRACKS.filter((t) => t.isLiked)
-  );
+  const [likedTracks, setLikedTracks] = useState<Track[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>(MOCK_PLAYLISTS);
   const [followedArtists] = useState<Artist[]>(MOCK_ARTISTS.slice(0, 3));
   const [savedAlbums] = useState<Album[]>(MOCK_ALBUMS);
@@ -246,6 +245,13 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSearchHistory([]);
   }, []);
 
+  const clearLibrary = useCallback(() => {
+    setLikedTracks([]);
+    setPlaylists(MOCK_PLAYLISTS);
+    setSearchHistory([]);
+    AsyncStorage.multiRemove([PLAYLISTS_STORAGE_KEY, LIKED_TRACKS_STORAGE_KEY]).catch(() => {});
+  }, []);
+
   return (
     <LibraryContext.Provider
       value={{
@@ -268,6 +274,7 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
         addSearchQuery,
         removeSearchQuery,
         clearSearchHistory,
+        clearLibrary,
       }}>
       {children}
     </LibraryContext.Provider>
