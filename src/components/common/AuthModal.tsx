@@ -512,8 +512,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                             <ActivityIndicator size="small" color="#FFFFFF" />
                           ) : (
                             <>
-                              <Text style={[styles.actionSubmitBtnText, { color: '#FFFFFF' }]}>Continue & Get Free OTP</Text>
-                              <Ionicons name="mail-unread-outline" size={18} color="#FFFFFF" />
+                              <Text style={[styles.actionSubmitBtnText, { color: '#FFFFFF' }]}>Sign Up</Text>
+                              <Ionicons name="arrow-forward-outline" size={18} color="#FFFFFF" />
                             </>
                           )}
                         </LinearGradient>
