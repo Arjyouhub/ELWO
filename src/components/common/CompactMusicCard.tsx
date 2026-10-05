@@ -10,16 +10,16 @@ interface CompactMusicCardProps {
   onPress?: () => void;
 }
 
-export const CompactMusicCard: React.FC<CompactMusicCardProps> = ({ track, onPress }) => {
+export const CompactMusicCard = React.memo<CompactMusicCardProps>(({ track, onPress }) => {
   const { state, playTrack, togglePlay } = usePlayer();
   const isCurrent = state.currentTrack?.id === track.id;
   const isPlaying = isCurrent && state.isPlaying;
 
   const handlePress = () => {
-    if (onPress) {
-      onPress();
-    } else if (isCurrent) {
+    if (isCurrent) {
       togglePlay();
+    } else if (onPress) {
+      onPress();
     } else {
       playTrack(track);
     }
@@ -54,7 +54,9 @@ export const CompactMusicCard: React.FC<CompactMusicCardProps> = ({ track, onPre
       </View>
     </Pressable>
   );
-};
+});
+
+CompactMusicCard.displayName = 'CompactMusicCard';
 
 const styles = StyleSheet.create({
   card: {

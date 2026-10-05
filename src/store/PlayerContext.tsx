@@ -57,6 +57,18 @@ interface PlayerContextType {
   resetPlayerState: () => void;
 }
 
+export interface PlayerProgressContextType {
+  position: number;
+  duration: number;
+}
+
+export const PlayerProgressContext = createContext<PlayerProgressContextType>({
+  position: 0,
+  duration: 0,
+});
+
+export const usePlayerProgress = () => useContext(PlayerProgressContext);
+
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
 export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -82,6 +94,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const queueIndexRef = useRef<number>(queueIndex);
   const currentTrackRef = useRef<Track | null>(currentTrack);
   const positionRef = useRef<number>(position);
+  const durationRef = useRef<number>(duration);
   const isTransitioningRef = useRef<boolean>(false);
 
   // Load saved music volume and recently played tracks on startup
@@ -155,6 +168,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     positionRef.current = position;
   }, [position]);
+
+  useEffect(() => {
+    durationRef.current = duration;
+  }, [duration]);
 
   // Handle track finished event with Smart Auto-Next
   const handleTrackFinished = useCallback(() => {
@@ -304,6 +321,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [handleTrackFinished]);
 
   const playTrack = (track: Track, newQueue?: Track[]) => {
+    // If the selected track is already currently playing/loaded, toggle play/pause instead of restarting
+    if (currentTrackRef.current?.id === track.id) {
+      togglePlay();
+      return;
+    }
+
     setCurrentTrack(track);
     currentTrackRef.current = track;
     setDuration(track.duration);
@@ -354,7 +377,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             const liveTracks = await JioSaavnService.searchFullSongs(`${track.title} ${track.artistName}`, 1, 1);
             if (liveTracks[0]?.streamUrl) {
               stream = liveTracks[0].streamUrl;
-              track.streamUrl = stream;
             }
           } catch (fetchErr) {
             console.warn('Live stream lookup failed:', fetchErr);
@@ -545,22 +567,23 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     AsyncStorage.removeItem('@elwo_recently_played').catch(() => {});
   }, []);
 
+  const playerState = {
+    currentTrack,
+    isPlaying,
+    duration,
+    isBuffering,
+    queue,
+    queueIndex,
+    isShuffle,
+    repeatMode,
+    volume,
+    isMuted,
+  };
+
   return (
     <PlayerContext.Provider
       value={{
-        state: {
-          currentTrack,
-          isPlaying,
-          position,
-          duration,
-          isBuffering,
-          queue,
-          queueIndex,
-          isShuffle,
-          repeatMode,
-          volume,
-          isMuted,
-        },
+        state: playerState,
         recentlyPlayed,
         isFullPlayerVisible,
         setFullPlayerVisible,
@@ -577,7 +600,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         clearRecentlyPlayed,
         resetPlayerState,
       }}>
-      {children}
+      <PlayerProgressContext.Provider value={{ position, duration }}>
+        {children}
+      </PlayerProgressContext.Provider>
     </PlayerContext.Provider>
   );
 };

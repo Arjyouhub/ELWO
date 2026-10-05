@@ -73,7 +73,7 @@ export type RepeatMode = 'off' | 'all' | 'one';
 export interface PlayerState {
   currentTrack: Track | null;
   isPlaying: boolean;
-  position: number; // current playback position in seconds
+  position?: number; // current playback position in seconds (use usePlayerProgress for reactive updates)
   duration: number; // current track duration in seconds
   isBuffering: boolean;
   queue: Track[];

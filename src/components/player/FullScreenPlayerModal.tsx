@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
-import { usePlayer } from '../../store/PlayerContext';
+import { usePlayer, usePlayerProgress } from '../../store/PlayerContext';
 import { useLibrary } from '../../store/LibraryContext';
 import { useChayakada } from '../../store/ChayakadaContext';
 import { JioSaavnService } from '../../services/jiosaavn';
@@ -39,6 +39,7 @@ export const FullScreenPlayerModal: React.FC = () => {
     playTrack,
   } = usePlayer();
 
+  const { position, duration } = usePlayerProgress();
   const { isLiked, toggleLike, openAddToPlaylist } = useLibrary();
   const { openModal: openChayakada, isAmbientPlaying, getActiveSoundsCount, ambientTab } = useChayakada();
   const [showQueueView, setShowQueueView] = useState(false);
@@ -50,8 +51,6 @@ export const FullScreenPlayerModal: React.FC = () => {
   const {
     currentTrack,
     isPlaying,
-    position,
-    duration,
     queue,
     queueIndex,
     isShuffle,

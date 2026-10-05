@@ -11,7 +11,7 @@ interface MusicCardProps {
   onPress?: () => void;
 }
 
-export const MusicCard: React.FC<MusicCardProps> = ({ track, badge, onPress }) => {
+export const MusicCard = React.memo<MusicCardProps>(({ track, badge, onPress }) => {
   const { width } = useWindowDimensions();
   const cardWidth = width < 380 ? 132 : 144;
   const { state, playTrack, togglePlay } = usePlayer();
@@ -20,10 +20,10 @@ export const MusicCard: React.FC<MusicCardProps> = ({ track, badge, onPress }) =
   const isPlaying = isCurrent && state.isPlaying;
 
   const handlePress = () => {
-    if (onPress) {
-      onPress();
-    } else if (isCurrent) {
+    if (isCurrent) {
       togglePlay();
+    } else if (onPress) {
+      onPress();
     } else {
       playTrack(track);
     }
@@ -66,7 +66,9 @@ export const MusicCard: React.FC<MusicCardProps> = ({ track, badge, onPress }) =
       </Text>
     </Pressable>
   );
-};
+});
+
+MusicCard.displayName = 'MusicCard';
 
 const styles = StyleSheet.create({
   container: {

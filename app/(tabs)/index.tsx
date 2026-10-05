@@ -283,8 +283,8 @@ export default function HomeScreen() {
         {newReleasesTracks.length > 0 && (
           <>
             <ELWOSectionHeader
-              title="New Releases"
-              subtitle={`Fresh tracks released in ${languagesLabel}`}
+              title="Fresh Releases"
+              subtitle={`Fresh tracks dropped in ${languagesLabel}`}
             />
             <ScrollView
               horizontal

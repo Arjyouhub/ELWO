@@ -2,14 +2,15 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius, Shadows } from '../../constants/theme';
-import { usePlayer } from '../../store/PlayerContext';
+import { usePlayer, usePlayerProgress } from '../../store/PlayerContext';
 import { useLibrary } from '../../store/LibraryContext';
 
 export const MiniPlayer: React.FC = () => {
   const { state, togglePlay, nextTrack, setFullPlayerVisible } = usePlayer();
+  const { position, duration } = usePlayerProgress();
   const { isLiked, toggleLike } = useLibrary();
 
-  const { currentTrack, isPlaying, position, duration } = state;
+  const { currentTrack, isPlaying } = state;
 
   if (!currentTrack) return null;
 
