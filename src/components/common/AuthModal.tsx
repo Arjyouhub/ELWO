@@ -12,6 +12,7 @@ import {
   Easing,
   TextInput,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -300,89 +301,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
 
           {step === 'auth' ? (
             <>
-              {/* Top Brand Header */}
+              {/* Sleek Modern Centered Brand Header */}
               <View style={styles.heroSection}>
-                {/* Glowing Logo Container */}
-                <View style={styles.logoWrapper}>
-                  <LinearGradient
-                    colors={['#8B5CF6', '#6366F1', '#4F46E5']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.logoGradientBox}>
-                    <Ionicons name="musical-notes" size={32} color="#FFFFFF" />
-                  </LinearGradient>
-
-                  {/* Animated Equalizer Waveform indicator */}
-                  <View style={styles.waveformContainer}>
-                    {[wave1, wave2, wave3, wave4, wave5].map((w, idx) => (
-                      <Animated.View
-                        key={idx}
-                        style={[
-                          styles.waveBar,
-                          { transform: [{ scaleY: w }] },
-                        ]}
-                      />
-                    ))}
-                  </View>
-                </View>
-
+                <Image
+                  source={require('../../../assets/images/icon.png')}
+                  style={styles.heroLogo}
+                />
                 <Text style={styles.appName}>ELWO</Text>
                 <Text style={styles.appTagline}>Listen your way.</Text>
-
-                {/* Pill Highlights */}
-                <View style={styles.heroBadgeRow}>
-                  <View style={styles.heroPill}>
-                    <View style={styles.liveGreenDot} />
-                    <Text style={styles.heroPillText}>STUDIO MASTER</Text>
-                  </View>
-                  <View style={[styles.heroPill, styles.heroPillAccent]}>
-                    <Ionicons name="sparkles" size={10} color="#A78BFA" />
-                    <Text style={styles.heroPillTextAccent}>KERALA AMBIENCE</Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Ambience Showcase Grid (Chayakada, Bus, Train) */}
-              <View style={styles.showcaseSection}>
-                <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionHeaderTitle}>IMMERSIVE SOUNDSCAPES</Text>
-                  <Text style={styles.sectionHeaderHint}>Blended with music</Text>
-                </View>
-
-                <View style={styles.ambienceCardsRow}>
-                  {/* Card 1: Chayakada */}
-                  <LinearGradient
-                    colors={['rgba(30, 27, 75, 0.7)', 'rgba(15, 23, 42, 0.9)']}
-                    style={styles.ambientCard}>
-                    <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(139, 92, 246, 0.2)' }]}>
-                      <Ionicons name="cafe" size={16} color="#A78BFA" />
-                    </View>
-                    <Text style={styles.ambientCardName}>ചായക്കട</Text>
-                    <Text style={styles.ambientCardDesc}>Rain & stove fire</Text>
-                  </LinearGradient>
-
-                  {/* Card 2: Bus */}
-                  <LinearGradient
-                    colors={['rgba(24, 34, 69, 0.7)', 'rgba(15, 23, 42, 0.9)']}
-                    style={styles.ambientCard}>
-                    <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
-                      <Ionicons name="bus" size={16} color="#60A5FA" />
-                    </View>
-                    <Text style={styles.ambientCardName}>ബസ് യാത്ര</Text>
-                    <Text style={styles.ambientCardDesc}>KSRTC window rain</Text>
-                  </LinearGradient>
-
-                  {/* Card 3: Train */}
-                  <LinearGradient
-                    colors={['rgba(20, 50, 45, 0.7)', 'rgba(15, 23, 42, 0.9)']}
-                    style={styles.ambientCard}>
-                    <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
-                      <Ionicons name="train" size={16} color="#34D399" />
-                    </View>
-                    <Text style={styles.ambientCardName}>ട്രെയിൻ</Text>
-                    <Text style={styles.ambientCardDesc}>Rail rhythm & wind</Text>
-                  </LinearGradient>
-                </View>
               </View>
 
               {/* Action Login Section: ONLY Google + Guest */}
@@ -395,7 +321,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                       <Text style={styles.expiredTitle}>Your guest session has expired.</Text>
                     </View>
                     <Text style={styles.expiredDesc}>
-                      10 minutes completed. Sign in with Google to keep listening without limits, or start a new 10-minute guest session.
+                      10 minutes completed. Sign in to keep listening without limits, or start a new 10-minute guest session.
                     </Text>
                   </View>
                 )}
@@ -618,13 +544,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                   </View>
                   <View style={styles.trustBadgeDot} />
                   <View style={styles.trustBadge}>
-                    <Ionicons name="checkmark-circle" size={11} color="#34D399" />
-                    <Text style={styles.trustBadgeText}>No Credit Card</Text>
+                    <Ionicons name="infinite" size={11} color="#60A5FA" />
+                    <Text style={styles.trustBadgeText}>Zero Ads</Text>
                   </View>
                   <View style={styles.trustBadgeDot} />
                   <View style={styles.trustBadge}>
-                    <Ionicons name="infinite" size={11} color="#60A5FA" />
-                    <Text style={styles.trustBadgeText}>Zero Ads</Text>
+                    <Ionicons name="musical-notes" size={11} color="#34D399" />
+                    <Text style={styles.trustBadgeText}>Lossless HD</Text>
                   </View>
                 </View>
 
@@ -818,57 +744,38 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    maxWidth: 460,
+    maxWidth: 420,
     width: '100%',
     alignSelf: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
   },
   heroSection: {
     alignItems: 'center',
-    marginTop: 4,
-  },
-  logoWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 10,
   },
-  logoGradientBox: {
-    width: 66,
-    height: 66,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+  heroLogo: {
+    width: 68,
+    height: 68,
+    borderRadius: 18,
+    marginBottom: 4,
     shadowColor: Colors.dark.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.45,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  waveformContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    marginTop: 8,
-  },
-  waveBar: {
-    width: 3.5,
-    height: 16,
-    borderRadius: 2,
-    backgroundColor: Colors.dark.accentViolet,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
   },
   appName: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: 2,
     marginTop: 2,
   },
   appTagline: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#CBD5E1',
-    marginTop: 4,
-    marginBottom: 10,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#94A3B8',
+    marginTop: 2,
+    marginBottom: 8,
     letterSpacing: 0.3,
   },
   heroBadgeRow: {
