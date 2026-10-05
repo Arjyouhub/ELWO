@@ -108,8 +108,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
           }
 
-          if (parsedUser.role !== undefined && parsedUser.googleId) {
-            // Authenticated Google User
+          if (
+            parsedUser.role !== undefined &&
+            (parsedUser.email || parsedUser.googleId || (parsedUser._id && !parsedUser._id.startsWith('guest_')))
+          ) {
+            // Authenticated User (Email/Password or Account)
             setUser(parsedUser);
             setGuestSession(null);
             setAuthState('AUTHENTICATED');

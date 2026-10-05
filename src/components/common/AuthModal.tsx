@@ -587,32 +587,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                   )}
                 </View>
 
-                {/* ──────── OR OTHER OPTIONS ──────── */}
+                {/* ──────── OR GUEST ACCESS ──────── */}
                 <View style={styles.orDividerRow}>
                   <View style={styles.orLine} />
-                  <Text style={styles.orText}>OR ALTERNATIVE</Text>
+                  <Text style={styles.orText}>OR FREE PREVIEW</Text>
                   <View style={styles.orLine} />
                 </View>
 
-                {/* 2. Continue with Google */}
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.googleBtn,
-                    pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
-                  ]}
-                  onPress={handleGoogleLogin}>
-                  <LinearGradient
-                    colors={['#FFFFFF', '#F8FAFC']}
-                    style={styles.googleBtnGradient}>
-                    <View style={styles.googleIconCircle}>
-                      <Ionicons name="logo-google" size={18} color="#EA4335" />
-                    </View>
-                    <Text style={styles.googleBtnText}>Continue with Google</Text>
-                    <Ionicons name="arrow-forward" size={16} color="#1E293B" />
-                  </LinearGradient>
-                </Pressable>
-
-                {/* 3. Continue as Guest */}
+                {/* Continue as Guest */}
                 <Pressable
                   style={({ pressed }) => [
                     styles.guestBtn,
