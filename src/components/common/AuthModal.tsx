@@ -292,8 +292,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
           contentContainerStyle={[
             styles.scrollContent,
             {
-              paddingTop: topPadding + 12,
-              paddingBottom: bottomPadding + 16,
+              paddingTop: Math.max(topPadding, 16),
+              paddingBottom: Math.max(bottomPadding, 14),
             },
           ]}
           showsVerticalScrollIndicator={false}
@@ -311,7 +311,59 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                 <Text style={styles.appTagline}>Listen your way.</Text>
               </View>
 
-              {/* Action Login Section: ONLY Google + Guest */}
+              {/* Signature Soundscapes Ambience Showcase */}
+              <View style={styles.ambienceSection}>
+                <View style={styles.ambienceHeaderRow}>
+                  <View style={styles.ambienceHeaderLeft}>
+                    <Ionicons name="sparkles" size={11} color="#A78BFA" />
+                    <Text style={styles.ambienceSectionTitle}>SIGNATURE AMBIENCE</Text>
+                  </View>
+                  <Text style={styles.ambienceSectionSub}>Blended with music</Text>
+                </View>
+
+                <View style={styles.ambienceCardsRow}>
+                  {/* Card 1: Tea Stall */}
+                  <LinearGradient
+                    colors={['rgba(139, 92, 246, 0.18)', 'rgba(30, 27, 75, 0.45)']}
+                    style={[styles.ambientCard, styles.ambientCardTea]}>
+                    <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(139, 92, 246, 0.25)' }]}>
+                      <Ionicons name="cafe" size={13} color="#C4B5FD" />
+                    </View>
+                    <View style={styles.ambientCardTextWrap}>
+                      <Text style={styles.ambientCardName} numberOfLines={1}>Tea Stall</Text>
+                      <Text style={styles.ambientCardDesc} numberOfLines={1}>Rain & Chai</Text>
+                    </View>
+                  </LinearGradient>
+
+                  {/* Card 2: Bus Travel */}
+                  <LinearGradient
+                    colors={['rgba(59, 130, 246, 0.18)', 'rgba(24, 34, 69, 0.45)']}
+                    style={[styles.ambientCard, styles.ambientCardBus]}>
+                    <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(59, 130, 246, 0.25)' }]}>
+                      <Ionicons name="bus" size={13} color="#93C5FD" />
+                    </View>
+                    <View style={styles.ambientCardTextWrap}>
+                      <Text style={styles.ambientCardName} numberOfLines={1}>Bus Travel</Text>
+                      <Text style={styles.ambientCardDesc} numberOfLines={1}>KSRTC Rain</Text>
+                    </View>
+                  </LinearGradient>
+
+                  {/* Card 3: Train */}
+                  <LinearGradient
+                    colors={['rgba(16, 185, 129, 0.18)', 'rgba(20, 50, 45, 0.45)']}
+                    style={[styles.ambientCard, styles.ambientCardTrain]}>
+                    <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(16, 185, 129, 0.25)' }]}>
+                      <Ionicons name="train" size={13} color="#6EE7B7" />
+                    </View>
+                    <View style={styles.ambientCardTextWrap}>
+                      <Text style={styles.ambientCardName} numberOfLines={1}>Train</Text>
+                      <Text style={styles.ambientCardDesc} numberOfLines={1}>Rail Rhythm</Text>
+                    </View>
+                  </LinearGradient>
+                </View>
+              </View>
+
+              {/* Action Login Section */}
               <View style={styles.actionSection}>
                 {/* Guest Expired Alert Banner */}
                 {isGuestExpired && (
@@ -751,128 +803,110 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 4,
   },
   heroLogo: {
-    width: 68,
-    height: 68,
-    borderRadius: 18,
-    marginBottom: 4,
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    marginBottom: 3,
     shadowColor: Colors.dark.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 6,
   },
   appName: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: 2,
-    marginTop: 2,
+    letterSpacing: 1.5,
+    marginTop: 1,
   },
   appTagline: {
-    fontSize: 13,
+    fontSize: 11.5,
     fontWeight: '600',
     color: '#94A3B8',
-    marginTop: 2,
-    marginBottom: 8,
-    letterSpacing: 0.3,
+    marginTop: 1,
+    marginBottom: 4,
+    letterSpacing: 0.2,
   },
-  heroBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  ambienceSection: {
     marginBottom: 8,
   },
-  heroPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    paddingHorizontal: 9,
-    paddingVertical: 3.5,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  heroPillAccent: {
-    backgroundColor: 'rgba(139, 92, 246, 0.12)',
-    borderColor: 'rgba(139, 92, 246, 0.3)',
-  },
-  liveGreenDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#10B981',
-  },
-  heroPillText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#E2E8F0',
-    letterSpacing: 0.5,
-  },
-  heroPillTextAccent: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#C4B5FD',
-    letterSpacing: 0.5,
-  },
-  showcaseSection: {
-    marginTop: 10,
-    marginBottom: 12,
-  },
-  sectionHeaderRow: {
+  ambienceHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 5,
     paddingHorizontal: 2,
   },
-  sectionHeaderTitle: {
-    fontSize: 11,
+  ambienceHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ambienceSectionTitle: {
+    fontSize: 10,
     fontWeight: '800',
-    color: '#94A3B8',
+    color: '#A78BFA',
     letterSpacing: 0.8,
   },
-  sectionHeaderHint: {
-    fontSize: 11,
+  ambienceSectionSub: {
+    fontSize: 9.5,
     color: '#64748B',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   ambienceCardsRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
   },
   ambientCard: {
     flex: 1,
-    borderRadius: 14,
-    padding: 10,
+    borderRadius: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 6,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 5,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  },
+  ambientCardTea: {
+    borderColor: 'rgba(139, 92, 246, 0.3)',
+  },
+  ambientCardBus: {
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+  },
+  ambientCardTrain: {
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   ambientCardIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+  },
+  ambientCardTextWrap: {
+    flex: 1,
+    justifyContent: 'center',
   },
   ambientCardName: {
-    fontSize: 12,
+    fontSize: 10.5,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 2,
+    letterSpacing: 0.1,
   },
   ambientCardDesc: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#94A3B8',
-    textAlign: 'center',
+    marginTop: 0.5,
+    fontWeight: '500',
   },
   actionSection: {
-    marginTop: 8,
-    gap: 10,
+    marginTop: 2,
+    gap: 6,
   },
   expiredBanner: {
     backgroundColor: 'rgba(245, 158, 11, 0.12)',
@@ -934,8 +968,8 @@ const styles = StyleSheet.create({
   orDividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginVertical: 2,
+    gap: 10,
+    marginVertical: 1,
   },
   orLine: {
     flex: 1,
@@ -943,24 +977,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
   },
   orText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
     color: '#64748B',
     letterSpacing: 1,
   },
   guestBtn: {
-    height: 48,
-    borderRadius: 14,
+    height: 40,
+    borderRadius: 11,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1.2,
     borderColor: 'rgba(139, 92, 246, 0.3)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
   },
   guestBtnText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#FFFFFF',
     flex: 1,
@@ -1216,29 +1250,29 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.04)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 4,
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 2,
   },
   segmentedTabBar: {
     flexDirection: 'row',
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    borderRadius: 10,
-    padding: 3,
-    marginBottom: 16,
+    borderRadius: 8,
+    padding: 2.5,
+    marginBottom: 8,
   },
   segmentedTab: {
     flex: 1,
-    paddingVertical: 9,
+    paddingVertical: 7,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 8,
+    borderRadius: 6,
   },
   segmentedTabActive: {
     backgroundColor: '#1E293B',
   },
   segmentedTabText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#94A3B8',
   },
@@ -1247,7 +1281,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   formContainer: {
-    gap: 12,
+    gap: 8,
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -1255,24 +1289,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#090A0F',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 48,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 42,
   },
   inputIcon: {
-    marginRight: 10,
+    marginRight: 8,
   },
   textInputField: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 13.5,
     color: '#FFFFFF',
     paddingVertical: 0,
   },
   actionSubmitBtn: {
-    height: 48,
-    borderRadius: 12,
+    height: 42,
+    borderRadius: 10,
     overflow: 'hidden',
-    marginTop: 4,
+    marginTop: 2,
   },
   submitBtnGradient: {
     flex: 1,
@@ -1283,7 +1317,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   actionSubmitBtnText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#000000',
     letterSpacing: 0.2,
