@@ -301,65 +301,68 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
 
           {step === 'auth' ? (
             <>
-              {/* Sleek Modern Centered Brand Header */}
-              <View style={styles.heroSection}>
-                <Image
-                  source={require('../../../assets/images/icon.png')}
-                  style={styles.heroLogo}
-                />
-                <Text style={styles.appName}>ELWO</Text>
-                <Text style={styles.appTagline}>Listen your way.</Text>
-              </View>
-
-              {/* Signature Soundscapes Ambience Showcase */}
-              <View style={styles.ambienceSection}>
-                <View style={styles.ambienceHeaderRow}>
-                  <View style={styles.ambienceHeaderLeft}>
-                    <Ionicons name="sparkles" size={11} color="#A78BFA" />
-                    <Text style={styles.ambienceSectionTitle}>SIGNATURE AMBIENCE</Text>
-                  </View>
-                  <Text style={styles.ambienceSectionSub}>Blended with music</Text>
+              {/* Top Section: Brand Hero & Ambience Showcase */}
+              <View style={styles.topSection}>
+                {/* Sleek Modern Centered Brand Header */}
+                <View style={styles.heroSection}>
+                  <Image
+                    source={require('../../../assets/images/icon.png')}
+                    style={styles.heroLogo}
+                  />
+                  <Text style={styles.appName}>ELWO</Text>
+                  <Text style={styles.appTagline}>Listen your way.</Text>
                 </View>
 
-                <View style={styles.ambienceCardsRow}>
-                  {/* Card 1: Tea Stall */}
-                  <LinearGradient
-                    colors={['rgba(139, 92, 246, 0.18)', 'rgba(30, 27, 75, 0.45)']}
-                    style={[styles.ambientCard, styles.ambientCardTea]}>
-                    <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(139, 92, 246, 0.25)' }]}>
-                      <Ionicons name="cafe" size={13} color="#C4B5FD" />
+                {/* Signature Soundscapes Ambience Showcase */}
+                <View style={styles.ambienceSection}>
+                  <View style={styles.ambienceHeaderRow}>
+                    <View style={styles.ambienceHeaderLeft}>
+                      <Ionicons name="sparkles" size={12} color="#A78BFA" />
+                      <Text style={styles.ambienceSectionTitle}>SIGNATURE AMBIENCE</Text>
                     </View>
-                    <View style={styles.ambientCardTextWrap}>
-                      <Text style={styles.ambientCardName} numberOfLines={1}>Tea Stall</Text>
-                      <Text style={styles.ambientCardDesc} numberOfLines={1}>Rain & Chai</Text>
-                    </View>
-                  </LinearGradient>
+                    <Text style={styles.ambienceSectionSub}>Blended with music</Text>
+                  </View>
 
-                  {/* Card 2: Bus Travel */}
-                  <LinearGradient
-                    colors={['rgba(59, 130, 246, 0.18)', 'rgba(24, 34, 69, 0.45)']}
-                    style={[styles.ambientCard, styles.ambientCardBus]}>
-                    <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(59, 130, 246, 0.25)' }]}>
-                      <Ionicons name="bus" size={13} color="#93C5FD" />
-                    </View>
-                    <View style={styles.ambientCardTextWrap}>
-                      <Text style={styles.ambientCardName} numberOfLines={1}>Bus Travel</Text>
-                      <Text style={styles.ambientCardDesc} numberOfLines={1}>KSRTC Rain</Text>
-                    </View>
-                  </LinearGradient>
+                  <View style={styles.ambienceCardsRow}>
+                    {/* Card 1: Tea Stall */}
+                    <LinearGradient
+                      colors={['rgba(139, 92, 246, 0.18)', 'rgba(30, 27, 75, 0.45)']}
+                      style={[styles.ambientCard, styles.ambientCardTea]}>
+                      <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(139, 92, 246, 0.25)' }]}>
+                        <Ionicons name="cafe" size={15} color="#C4B5FD" />
+                      </View>
+                      <View style={styles.ambientCardTextWrap}>
+                        <Text style={styles.ambientCardName} numberOfLines={1}>Tea Stall</Text>
+                        <Text style={styles.ambientCardDesc} numberOfLines={1}>Rain & Chai</Text>
+                      </View>
+                    </LinearGradient>
 
-                  {/* Card 3: Train */}
-                  <LinearGradient
-                    colors={['rgba(16, 185, 129, 0.18)', 'rgba(20, 50, 45, 0.45)']}
-                    style={[styles.ambientCard, styles.ambientCardTrain]}>
-                    <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(16, 185, 129, 0.25)' }]}>
-                      <Ionicons name="train" size={13} color="#6EE7B7" />
-                    </View>
-                    <View style={styles.ambientCardTextWrap}>
-                      <Text style={styles.ambientCardName} numberOfLines={1}>Train</Text>
-                      <Text style={styles.ambientCardDesc} numberOfLines={1}>Rail Rhythm</Text>
-                    </View>
-                  </LinearGradient>
+                    {/* Card 2: Bus Travel */}
+                    <LinearGradient
+                      colors={['rgba(59, 130, 246, 0.18)', 'rgba(24, 34, 69, 0.45)']}
+                      style={[styles.ambientCard, styles.ambientCardBus]}>
+                      <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(59, 130, 246, 0.25)' }]}>
+                        <Ionicons name="bus" size={15} color="#93C5FD" />
+                      </View>
+                      <View style={styles.ambientCardTextWrap}>
+                        <Text style={styles.ambientCardName} numberOfLines={1}>Bus Travel</Text>
+                        <Text style={styles.ambientCardDesc} numberOfLines={1}>KSRTC Rain</Text>
+                      </View>
+                    </LinearGradient>
+
+                    {/* Card 3: Train */}
+                    <LinearGradient
+                      colors={['rgba(16, 185, 129, 0.18)', 'rgba(20, 50, 45, 0.45)']}
+                      style={[styles.ambientCard, styles.ambientCardTrain]}>
+                      <View style={[styles.ambientCardIcon, { backgroundColor: 'rgba(16, 185, 129, 0.25)' }]}>
+                        <Ionicons name="train" size={15} color="#6EE7B7" />
+                      </View>
+                      <View style={styles.ambientCardTextWrap}>
+                        <Text style={styles.ambientCardName} numberOfLines={1}>Train</Text>
+                        <Text style={styles.ambientCardDesc} numberOfLines={1}>Rail Rhythm</Text>
+                      </View>
+                    </LinearGradient>
+                  </View>
                 </View>
               </View>
 
@@ -796,95 +799,100 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    maxWidth: 420,
+    maxWidth: 440,
     width: '100%',
     alignSelf: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+  },
+  topSection: {
+    width: '100%',
+    alignItems: 'center',
   },
   heroSection: {
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   heroLogo: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    marginBottom: 3,
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    marginBottom: 6,
     shadowColor: Colors.dark.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 8,
   },
   appName: {
-    fontSize: 22,
+    fontSize: 28,
     fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: 1.5,
-    marginTop: 1,
+    letterSpacing: 2,
+    marginTop: 2,
   },
   appTagline: {
-    fontSize: 11.5,
+    fontSize: 13.5,
     fontWeight: '600',
     color: '#94A3B8',
-    marginTop: 1,
-    marginBottom: 4,
-    letterSpacing: 0.2,
+    marginTop: 2,
+    marginBottom: 8,
+    letterSpacing: 0.3,
   },
   ambienceSection: {
-    marginBottom: 8,
+    width: '100%',
+    marginBottom: 10,
   },
   ambienceHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 5,
+    marginBottom: 6,
     paddingHorizontal: 2,
   },
   ambienceHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
   },
   ambienceSectionTitle: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     color: '#A78BFA',
     letterSpacing: 0.8,
   },
   ambienceSectionSub: {
-    fontSize: 9.5,
+    fontSize: 11,
     color: '#64748B',
     fontWeight: '600',
   },
   ambienceCardsRow: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
   },
   ambientCard: {
     flex: 1,
-    borderRadius: 10,
-    paddingVertical: 5,
-    paddingHorizontal: 6,
+    borderRadius: 12,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 7,
     borderWidth: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
   ambientCardTea: {
-    borderColor: 'rgba(139, 92, 246, 0.3)',
+    borderColor: 'rgba(139, 92, 246, 0.35)',
   },
   ambientCardBus: {
-    borderColor: 'rgba(59, 130, 246, 0.3)',
+    borderColor: 'rgba(59, 130, 246, 0.35)',
   },
   ambientCardTrain: {
-    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderColor: 'rgba(16, 185, 129, 0.35)',
   },
   ambientCardIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -893,20 +901,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ambientCardName: {
-    fontSize: 10.5,
+    fontSize: 11.5,
     fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: 0.1,
   },
   ambientCardDesc: {
-    fontSize: 8,
+    fontSize: 9.5,
     color: '#94A3B8',
-    marginTop: 0.5,
+    marginTop: 1,
     fontWeight: '500',
   },
   actionSection: {
-    marginTop: 2,
-    gap: 6,
+    width: '100%',
+    gap: 8,
   },
   expiredBanner: {
     backgroundColor: 'rgba(245, 158, 11, 0.12)',
@@ -968,8 +976,8 @@ const styles = StyleSheet.create({
   orDividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginVertical: 1,
+    gap: 12,
+    marginVertical: 4,
   },
   orLine: {
     flex: 1,
@@ -977,24 +985,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
   },
   orText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     color: '#64748B',
     letterSpacing: 1,
   },
   guestBtn: {
-    height: 40,
-    borderRadius: 11,
+    height: 46,
+    borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1.2,
     borderColor: 'rgba(139, 92, 246, 0.3)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
   },
   guestBtnText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
     flex: 1,
@@ -1003,11 +1011,11 @@ const styles = StyleSheet.create({
   guestLimitBadge: {
     backgroundColor: 'rgba(139, 92, 246, 0.2)',
     paddingHorizontal: 8,
-    paddingVertical: 2.5,
+    paddingVertical: 3,
     borderRadius: 8,
   },
   guestLimitText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     color: '#C4B5FD',
   },
@@ -1015,31 +1023,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    marginTop: 2,
+    gap: 8,
+    marginTop: 4,
   },
   trustBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
   },
   trustBadgeText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
     color: Colors.dark.textMuted,
   },
   trustBadgeDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
+    width: 3.5,
+    height: 3.5,
+    borderRadius: 2,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   termsText: {
-    fontSize: 10,
+    fontSize: 10.5,
     color: Colors.dark.textMuted,
     textAlign: 'center',
     marginTop: 2,
-    lineHeight: 14,
+    lineHeight: 15,
   },
   developerBadge: {
     alignSelf: 'center',
@@ -1048,13 +1056,13 @@ const styles = StyleSheet.create({
     gap: 5,
     backgroundColor: 'rgba(139, 92, 246, 0.08)',
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 4.5,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(139, 92, 246, 0.2)',
   },
   developerText: {
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: '700',
     color: Colors.dark.accentViolet,
     letterSpacing: 0.3,
@@ -1251,28 +1259,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 16,
-    padding: 12,
+    padding: 14,
     marginBottom: 2,
   },
   segmentedTabBar: {
     flexDirection: 'row',
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    borderRadius: 8,
-    padding: 2.5,
-    marginBottom: 8,
+    borderRadius: 10,
+    padding: 3,
+    marginBottom: 10,
   },
   segmentedTab: {
     flex: 1,
-    paddingVertical: 7,
+    paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 6,
+    borderRadius: 8,
   },
   segmentedTabActive: {
     backgroundColor: '#1E293B',
   },
   segmentedTabText: {
-    fontSize: 12,
+    fontSize: 13.5,
     fontWeight: '600',
     color: '#94A3B8',
   },
@@ -1281,7 +1289,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   formContainer: {
-    gap: 8,
+    gap: 10,
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -1289,22 +1297,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#090A0F',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    height: 42,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 46,
   },
   inputIcon: {
-    marginRight: 8,
+    marginRight: 10,
   },
   textInputField: {
     flex: 1,
-    fontSize: 13.5,
+    fontSize: 14.5,
     color: '#FFFFFF',
     paddingVertical: 0,
   },
   actionSubmitBtn: {
-    height: 42,
-    borderRadius: 10,
+    height: 46,
+    borderRadius: 12,
     overflow: 'hidden',
     marginTop: 2,
   },
@@ -1317,7 +1325,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   actionSubmitBtnText: {
-    fontSize: 13,
+    fontSize: 14.5,
     fontWeight: '700',
     color: '#000000',
     letterSpacing: 0.2,
