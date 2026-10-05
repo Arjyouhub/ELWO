@@ -16,6 +16,10 @@ export function getApiBaseUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
+  // Production fallback to live Render cloud server
+  if (typeof __DEV__ !== 'undefined' && !__DEV__) {
+    return 'https://elwo.onrender.com';
+  }
   const debuggerHost = Constants.expoConfig?.hostUri;
   if (debuggerHost) {
     const ip = debuggerHost.split(':')[0];
@@ -24,7 +28,7 @@ export function getApiBaseUrl(): string {
   if (Platform.OS === 'android') {
     return 'http://10.0.2.2:5000';
   }
-  return 'http://localhost:5000';
+  return 'https://elwo.onrender.com';
 }
 
 export interface AuthResponse {

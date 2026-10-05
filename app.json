@@ -8,9 +8,12 @@
     "scheme": "elwo",
     "userInterfaceStyle": "dark",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.arjyouhub.elwo"
     },
     "android": {
+      "package": "com.arjyouhub.elwo",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#080C14",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
