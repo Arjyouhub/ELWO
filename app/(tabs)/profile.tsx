@@ -17,6 +17,7 @@ import { Colors, Spacing, BorderRadius } from '../../src/constants/theme';
 import { usePreferences } from '../../src/store/PreferencesContext';
 import { useAuth } from '../../src/store/AuthContext';
 import { EditProfileModal } from '../../src/components/common/EditProfileModal';
+import { AuthModal } from '../../src/components/common/AuthModal';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -25,7 +26,7 @@ export default function ProfileScreen() {
     Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 0
   );
   
-  const { user, isGuest, logout, loginWithGoogle, guestRemainingSeconds } = useAuth();
+  const { user, isGuest, logout, showAuthModal, setShowAuthModal, guestRemainingSeconds } = useAuth();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
   const formatTimer = (sec: number) => {
@@ -132,12 +133,12 @@ export default function ProfileScreen() {
                   styles.guestPromoCard,
                   pressed && { opacity: 0.9 },
                 ]}
-                onPress={loginWithGoogle}>
+                onPress={() => setShowAuthModal(true)}>
                 <View style={styles.guestPromoIcon}>
-                  <Ionicons name="logo-google" size={18} color="#EA4335" />
+                  <Ionicons name="person-add" size={18} color={Colors.dark.primary} />
                 </View>
                 <View style={styles.guestPromoTextGroup}>
-                  <Text style={styles.guestPromoTitle}>Continue with Google</Text>
+                  <Text style={styles.guestPromoTitle}>Sign In / Create Account</Text>
                   <Text style={styles.guestPromoSubtitle}>
                     Unlock unlimited listening & sync across devices
                   </Text>
@@ -285,6 +286,11 @@ export default function ProfileScreen() {
         visible={isEditModalVisible}
         onClose={() => setIsEditModalVisible(false)}
       />
+
+      {/* Auth Modal */}
+      <AuthModal
+        visible={showAuthModal}
+      />
     </View>
   );
 }
@@ -424,14 +430,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
     width: '100%',
     borderWidth: 1,
-    borderColor: 'rgba(234, 67, 53, 0.35)',
+    borderColor: 'rgba(139, 92, 246, 0.35)',
     gap: 12,
   },
   guestPromoIcon: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(139, 92, 246, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
