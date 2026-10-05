@@ -249,7 +249,7 @@ export default function HomeScreen() {
               ? `Guest Pass: ${Math.floor(guestRemainingSeconds / 60)}:${
                   guestRemainingSeconds % 60 < 10 ? '0' : ''
                 }${guestRemainingSeconds % 60} left`
-              : `${languagesLabel} • Unlimited live music`
+              : 'Unlimited music with zero ads'
           }
         />
 
