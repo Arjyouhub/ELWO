@@ -168,7 +168,7 @@ export default function HomeScreen() {
 
   // 5. "Artists you may like"
   const recommendedArtists = useMemo(() => {
-    return MOCK_ARTISTS.slice(0, 6);
+    return MOCK_ARTISTS.slice(0, 8);
   }, []);
 
   if (isDailyLoading && dailyTrendingTracks.length === 0) {
