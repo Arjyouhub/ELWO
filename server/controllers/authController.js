@@ -85,3 +85,40 @@ exports.logout = async (req, res) => {
 exports.getServerTime = (req, res) => {
   return res.status(200).json({ serverTime: Date.now() });
 };
+
+exports.registerSendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const result = await authService.sendRegistrationOtp(email);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.registerVerifyOtp = async (req, res) => {
+  try {
+    const { name, email, password, otp } = req.body;
+    const result = await authService.verifyRegistrationOtp(name, email, password, otp);
+    return res.status(201).json(result);
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.loginEmail = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const result = await authService.loginWithEmail(email, password);
+    return res.status(200).json(result);
+  } catch (error) {
+    if (error.message === 'USER_BLOCKED') {
+      return res.status(403).json({
+        success: false,
+        code: 'USER_BLOCKED',
+        message: 'Your account has been blocked. Please contact support.',
+      });
+    }
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};

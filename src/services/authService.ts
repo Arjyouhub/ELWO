@@ -5,10 +5,38 @@
  * 10-minute guest session management, and development reset.
  */
 
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, GuestSession } from '../types/user';
 
 export const GUEST_DURATION_MS = 10 * 60 * 1000; // EXACTLY 10 MINUTES
+
+export function getApiBaseUrl(): string {
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+  const debuggerHost = Constants.expoConfig?.hostUri;
+  if (debuggerHost) {
+    const ip = debuggerHost.split(':')[0];
+    return `http://${ip}:5000`;
+  }
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:5000';
+  }
+  return 'http://localhost:5000';
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message?: string;
+  user?: User;
+  token?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  onboardingCompleted?: boolean;
+  devOtp?: string;
+}
 
 export interface GoogleAuthResponse {
   user: User;
@@ -198,6 +226,62 @@ class AuthService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Send 6-digit OTP for Email Registration
+   */
+  async sendRegistrationOtp(email: string): Promise<{ success: boolean; message: string; devOtp?: string }> {
+    const baseUrl = getApiBaseUrl();
+    const res = await fetch(`${baseUrl}/api/auth/register-send-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Failed to send verification code');
+    }
+    return data;
+  }
+
+  /**
+   * Verify Registration OTP and complete account creation
+   */
+  async verifyRegistrationOtp(
+    name: string,
+    email: string,
+    password: string,
+    otp: string
+  ): Promise<AuthResponse> {
+    const baseUrl = getApiBaseUrl();
+    const res = await fetch(`${baseUrl}/api/auth/register-verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password, otp }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Verification failed');
+    }
+    return data;
+  }
+
+  /**
+   * Standard Login with Email and Password
+   */
+  async loginWithEmail(email: string, password: string): Promise<AuthResponse> {
+    const baseUrl = getApiBaseUrl();
+    const res = await fetch(`${baseUrl}/api/auth/login-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Login failed');
+    }
+    return data;
   }
 }
 

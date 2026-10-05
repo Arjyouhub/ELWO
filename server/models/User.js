@@ -5,6 +5,8 @@ const userSchema = new mongoose.Schema(
     googleId: { type: String, unique: true, sparse: true, index: true },
     email: { type: String, unique: true, sparse: true, lowercase: true, trim: true, index: true },
     name: { type: String, required: true, trim: true },
+    passwordHash: { type: String, default: null },
+    emailVerified: { type: Boolean, default: false },
     profileImage: { type: String, default: null },
     preferredLanguages: { type: [String], default: [] },
     onboardingCompleted: { type: Boolean, default: false },

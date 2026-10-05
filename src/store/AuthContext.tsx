@@ -23,6 +23,9 @@ interface AuthContextType {
   showAuthModal: boolean;
   setShowAuthModal: (show: boolean) => void;
   loginWithGoogle: () => Promise<{ onboardingCompleted: boolean; user: User | null }>;
+  sendRegistrationOtp: (email: string) => Promise<{ success: boolean; message: string; devOtp?: string }>;
+  verifyRegistrationAndLogin: (name: string, email: string, password: string, otp: string) => Promise<{ onboardingCompleted: boolean; user: User | null }>;
+  loginWithEmailPassword: (email: string, password: string) => Promise<{ onboardingCompleted: boolean; user: User | null }>;
   continueAsGuest: () => Promise<void>;
   completeOnboarding: (languages: string[]) => Promise<void>;
   logout: () => Promise<void>;
@@ -222,6 +225,92 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const sendRegistrationOtp = async (email: string) => {
+    return await authService.sendRegistrationOtp(email);
+  };
+
+  const verifyRegistrationAndLogin = async (
+    name: string,
+    email: string,
+    password: string,
+    otp: string
+  ): Promise<{ onboardingCompleted: boolean; user: User | null }> => {
+    try {
+      setIsLoading(true);
+      const res = await authService.verifyRegistrationOtp(name, email, password, otp);
+
+      if (!res.user) {
+        throw new Error(res.message || 'Registration failed');
+      }
+
+      setUser(res.user);
+      setGuestSession(null);
+      setGuestRemainingSeconds(0);
+      setAuthState('AUTHENTICATED');
+
+      await Promise.all([
+        AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(res.user)),
+        AsyncStorage.setItem(AUTH_COMPLETED_KEY, 'true'),
+        AsyncStorage.setItem(ACCESS_TOKEN_KEY, res.accessToken || ''),
+        AsyncStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken || ''),
+        AsyncStorage.removeItem(GUEST_SESSION_KEY),
+      ]);
+
+      return {
+        onboardingCompleted: !!res.onboardingCompleted,
+        user: res.user,
+      };
+    } catch (e) {
+      console.warn('Error during registration verification:', e);
+      throw e;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWithEmailPassword = async (
+    email: string,
+    password: string
+  ): Promise<{ onboardingCompleted: boolean; user: User | null }> => {
+    try {
+      setIsLoading(true);
+      const res = await authService.loginWithEmail(email, password);
+
+      if (!res.user) {
+        throw new Error(res.message || 'Login failed');
+      }
+
+      if (res.user.status === 'BLOCKED') {
+        alert('Your account has been blocked. Please contact support.');
+        await logout();
+        return { onboardingCompleted: false, user: null };
+      }
+
+      setUser(res.user);
+      setGuestSession(null);
+      setGuestRemainingSeconds(0);
+      setAuthState('AUTHENTICATED');
+
+      await Promise.all([
+        AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(res.user)),
+        AsyncStorage.setItem(AUTH_COMPLETED_KEY, 'true'),
+        AsyncStorage.setItem(ACCESS_TOKEN_KEY, res.accessToken || ''),
+        AsyncStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken || ''),
+        AsyncStorage.removeItem(GUEST_SESSION_KEY),
+      ]);
+
+      return {
+        onboardingCompleted: !!res.onboardingCompleted,
+        user: res.user,
+      };
+    } catch (e) {
+      console.warn('Error during email login:', e);
+      throw e;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const continueAsGuest = async () => {
     try {
       setIsLoading(true);
@@ -315,6 +404,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         showAuthModal,
         setShowAuthModal,
         loginWithGoogle,
+        sendRegistrationOtp,
+        verifyRegistrationAndLogin,
+        loginWithEmailPassword,
         continueAsGuest,
         completeOnboarding,
         logout,

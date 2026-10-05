@@ -10,6 +10,8 @@ import {
   ScrollView,
   Animated,
   Easing,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -40,10 +42,31 @@ const LANGUAGE_OPTIONS: {
 ];
 
 export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLanguageSelected }) => {
-  const { loginWithGoogle, continueAsGuest, completeOnboarding, setShowAuthModal, isGuestExpired } = useAuth();
+  const {
+    loginWithGoogle,
+    sendRegistrationOtp,
+    verifyRegistrationAndLogin,
+    loginWithEmailPassword,
+    continueAsGuest,
+    completeOnboarding,
+    setShowAuthModal,
+    isGuestExpired,
+  } = useAuth();
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState<'auth' | 'language'>('auth');
   const [selectedLanguages, setSelectedLanguages] = useState<MusicLanguage[]>([]);
+
+  // Email & Password / Registration OTP State
+  const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [signupStep, setSignupStep] = useState<'details' | 'otp'>('details');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Equalizer visualizer animation values
   const [pulseAnim] = useState(() => new Animated.Value(1));
@@ -111,6 +134,79 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
     Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 16
   );
   const bottomPadding = Math.max(insets.bottom, 20);
+
+  const handleEmailLogin = async () => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    if (!email.trim() || !password) {
+      setErrorMessage('Please enter your email and password');
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      const res = await loginWithEmailPassword(email.trim(), password);
+      if (res.user) {
+        const onboarded = await AsyncStorage.getItem('@elwo_language_onboarded');
+        if (!onboarded) {
+          setStep('language');
+        } else {
+          if (onDismiss) onDismiss();
+          setShowAuthModal(false);
+        }
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Login failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSendOtp = async () => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    if (!name.trim()) {
+      setErrorMessage('Please enter your name');
+      return;
+    }
+    if (!email.trim() || !email.includes('@')) {
+      setErrorMessage('Please enter a valid email address');
+      return;
+    }
+    if (!password || password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters');
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      const res = await sendRegistrationOtp(email.trim());
+      setSuccessMessage(res.message || 'Verification code sent to your email');
+      setSignupStep('otp');
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to send verification code');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    if (!otp.trim() || otp.trim().length < 6) {
+      setErrorMessage('Please enter the 6-digit verification code');
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      const res = await verifyRegistrationAndLogin(name.trim(), email.trim(), password, otp.trim());
+      if (res.user) {
+        setStep('language');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Verification failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     await loginWithGoogle();
@@ -302,7 +398,203 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                   </View>
                 )}
 
-                {/* 1. Continue with Google */}
+                {/* 1. Email Auth Card (Log In / Sign Up with Free OTP) */}
+                <View style={styles.emailAuthCard}>
+                  {/* Segmented Mode Tabs */}
+                  <View style={styles.segmentedTabBar}>
+                    <Pressable
+                      style={[styles.segmentedTab, authTab === 'login' && styles.segmentedTabActive]}
+                      onPress={() => {
+                        setAuthTab('login');
+                        setErrorMessage(null);
+                        setSuccessMessage(null);
+                      }}>
+                      <Text style={[styles.segmentedTabText, authTab === 'login' && styles.segmentedTabTextActive]}>
+                        Log In
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.segmentedTab, authTab === 'signup' && styles.segmentedTabActive]}
+                      onPress={() => {
+                        setAuthTab('signup');
+                        setSignupStep('details');
+                        setErrorMessage(null);
+                        setSuccessMessage(null);
+                      }}>
+                      <Text style={[styles.segmentedTabText, authTab === 'signup' && styles.segmentedTabTextActive]}>
+                        Sign Up (OTP)
+                      </Text>
+                    </Pressable>
+                  </View>
+
+                  {/* Feedback Banners */}
+                  {errorMessage && (
+                    <View style={styles.errorAlertBox}>
+                      <Ionicons name="alert-circle" size={15} color="#EF4444" />
+                      <Text style={styles.errorAlertText}>{errorMessage}</Text>
+                    </View>
+                  )}
+                  {successMessage && (
+                    <View style={styles.successAlertBox}>
+                      <Ionicons name="checkmark-circle" size={15} color="#22C55E" />
+                      <Text style={styles.successAlertText}>{successMessage}</Text>
+                    </View>
+                  )}
+
+                  {authTab === 'login' ? (
+                    /* LOGIN FORM */
+                    <View style={styles.formContainer}>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="mail-outline" size={17} color="#94A3B8" style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.textInputField}
+                          placeholder="Email address"
+                          placeholderTextColor="#64748B"
+                          value={email}
+                          onChangeText={setEmail}
+                          autoCapitalize="none"
+                          keyboardType="email-address"
+                        />
+                      </View>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="lock-closed-outline" size={17} color="#94A3B8" style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.textInputField}
+                          placeholder="Password"
+                          placeholderTextColor="#64748B"
+                          value={password}
+                          onChangeText={setPassword}
+                          secureTextEntry={!showPassword}
+                        />
+                        <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={10}>
+                          <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color="#94A3B8" />
+                        </Pressable>
+                      </View>
+                      <Pressable
+                        style={({ pressed }) => [styles.actionSubmitBtn, pressed && { opacity: 0.9 }]}
+                        onPress={handleEmailLogin}
+                        disabled={isSubmitting}>
+                        <LinearGradient colors={['#22C55E', '#16A34A']} style={styles.submitBtnGradient}>
+                          {isSubmitting ? (
+                            <ActivityIndicator size="small" color="#000000" />
+                          ) : (
+                            <>
+                              <Text style={styles.actionSubmitBtnText}>Log In to ELWO</Text>
+                              <Ionicons name="log-in-outline" size={18} color="#000000" />
+                            </>
+                          )}
+                        </LinearGradient>
+                      </Pressable>
+                    </View>
+                  ) : signupStep === 'details' ? (
+                    /* SIGN UP - DETAILS FORM */
+                    <View style={styles.formContainer}>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="person-outline" size={17} color="#94A3B8" style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.textInputField}
+                          placeholder="Your Name"
+                          placeholderTextColor="#64748B"
+                          value={name}
+                          onChangeText={setName}
+                        />
+                      </View>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="mail-outline" size={17} color="#94A3B8" style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.textInputField}
+                          placeholder="Email address"
+                          placeholderTextColor="#64748B"
+                          value={email}
+                          onChangeText={setEmail}
+                          autoCapitalize="none"
+                          keyboardType="email-address"
+                        />
+                      </View>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="lock-closed-outline" size={17} color="#94A3B8" style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.textInputField}
+                          placeholder="Create Password (min 6 chars)"
+                          placeholderTextColor="#64748B"
+                          value={password}
+                          onChangeText={setPassword}
+                          secureTextEntry={!showPassword}
+                        />
+                        <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={10}>
+                          <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color="#94A3B8" />
+                        </Pressable>
+                      </View>
+                      <Pressable
+                        style={({ pressed }) => [styles.actionSubmitBtn, pressed && { opacity: 0.9 }]}
+                        onPress={handleSendOtp}
+                        disabled={isSubmitting}>
+                        <LinearGradient colors={['#8B5CF6', '#7C3AED']} style={styles.submitBtnGradient}>
+                          {isSubmitting ? (
+                            <ActivityIndicator size="small" color="#FFFFFF" />
+                          ) : (
+                            <>
+                              <Text style={[styles.actionSubmitBtnText, { color: '#FFFFFF' }]}>Continue & Get Free OTP</Text>
+                              <Ionicons name="mail-unread-outline" size={18} color="#FFFFFF" />
+                            </>
+                          )}
+                        </LinearGradient>
+                      </Pressable>
+                    </View>
+                  ) : (
+                    /* SIGN UP - OTP VERIFICATION FORM */
+                    <View style={styles.formContainer}>
+                      <Text style={styles.otpHelperText}>
+                        Enter the 6-digit code sent to <Text style={{ color: '#22C55E', fontWeight: '700' }}>{email}</Text>
+                      </Text>
+                      <View style={styles.otpInputWrapper}>
+                        <TextInput
+                          style={styles.otpInputField}
+                          placeholder="••••••"
+                          placeholderTextColor="#475569"
+                          value={otp}
+                          onChangeText={setOtp}
+                          keyboardType="number-pad"
+                          maxLength={6}
+                          autoFocus
+                        />
+                      </View>
+                      <Pressable
+                        style={({ pressed }) => [styles.actionSubmitBtn, pressed && { opacity: 0.9 }]}
+                        onPress={handleVerifyOtp}
+                        disabled={isSubmitting}>
+                        <LinearGradient colors={['#22C55E', '#16A34A']} style={styles.submitBtnGradient}>
+                          {isSubmitting ? (
+                            <ActivityIndicator size="small" color="#000000" />
+                          ) : (
+                            <>
+                              <Text style={styles.actionSubmitBtnText}>Verify & Create Account</Text>
+                              <Ionicons name="checkmark-done-circle-outline" size={18} color="#000000" />
+                            </>
+                          )}
+                        </LinearGradient>
+                      </Pressable>
+                      <View style={styles.otpFooterLinks}>
+                        <Pressable onPress={handleSendOtp} hitSlop={6}>
+                          <Text style={styles.otpSubLink}>Resend OTP</Text>
+                        </Pressable>
+                        <Text style={{ color: '#475569' }}>•</Text>
+                        <Pressable onPress={() => setSignupStep('details')} hitSlop={6}>
+                          <Text style={styles.otpSubLink}>Change Email</Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  )}
+                </View>
+
+                {/* ──────── OR OTHER OPTIONS ──────── */}
+                <View style={styles.orDividerRow}>
+                  <View style={styles.orLine} />
+                  <Text style={styles.orText}>OR ALTERNATIVE</Text>
+                  <View style={styles.orLine} />
+                </View>
+
+                {/* 2. Continue with Google */}
                 <Pressable
                   style={({ pressed }) => [
                     styles.googleBtn,
@@ -320,14 +612,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                   </LinearGradient>
                 </Pressable>
 
-                {/* ──────── OR ──────── */}
-                <View style={styles.orDividerRow}>
-                  <View style={styles.orLine} />
-                  <Text style={styles.orText}>OR</Text>
-                  <View style={styles.orLine} />
-                </View>
-
-                {/* 2. Continue as Guest */}
+                {/* 3. Continue as Guest */}
                 <Pressable
                   style={({ pressed }) => [
                     styles.guestBtn,
@@ -1029,5 +1314,154 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#94A3B8',
     textDecorationLine: 'underline',
+  },
+  // Email Auth & OTP Form Styles
+  emailAuthCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 4,
+  },
+  segmentedTabBar: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: 10,
+    padding: 3,
+    marginBottom: 16,
+  },
+  segmentedTab: {
+    flex: 1,
+    paddingVertical: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+  },
+  segmentedTabActive: {
+    backgroundColor: '#1E293B',
+  },
+  segmentedTabText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#94A3B8',
+  },
+  segmentedTabTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  formContainer: {
+    gap: 12,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#090A0F',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 48,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  textInputField: {
+    flex: 1,
+    fontSize: 14,
+    color: '#FFFFFF',
+    paddingVertical: 0,
+  },
+  actionSubmitBtn: {
+    height: 48,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 4,
+  },
+  submitBtnGradient: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+  },
+  actionSubmitBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#000000',
+    letterSpacing: 0.2,
+  },
+  errorAlertBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 10,
+  },
+  errorAlertText: {
+    fontSize: 12,
+    color: '#F87171',
+    fontWeight: '500',
+    flex: 1,
+  },
+  successAlertBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(34, 197, 94, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 10,
+  },
+  successAlertText: {
+    fontSize: 12,
+    color: '#4ADE80',
+    fontWeight: '500',
+    flex: 1,
+  },
+  otpHelperText: {
+    fontSize: 13,
+    color: '#94A3B8',
+    textAlign: 'center',
+    marginBottom: 4,
+    lineHeight: 18,
+  },
+  otpInputWrapper: {
+    backgroundColor: '#090A0F',
+    borderWidth: 1.5,
+    borderColor: '#22C55E',
+    borderRadius: 14,
+    height: 54,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  otpInputField: {
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: 8,
+    color: '#22C55E',
+    textAlign: 'center',
+    width: '100%',
+  },
+  otpFooterLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 4,
+  },
+  otpSubLink: {
+    fontSize: 12,
+    color: '#8B5CF6',
+    fontWeight: '600',
   },
 });
