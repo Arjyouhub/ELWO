@@ -9,6 +9,7 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, GuestSession } from '../types/user';
+import { getDeviceInfo } from '../utils/deviceInfo';
 
 export const GUEST_DURATION_MS = 10 * 60 * 1000; // EXACTLY 10 MINUTES
 
@@ -259,10 +260,18 @@ class AuthService {
     otp: string
   ): Promise<AuthResponse> {
     const baseUrl = getApiBaseUrl();
+    const devInfo = getDeviceInfo();
     const res = await fetch(`${baseUrl}/api/auth/register-verify-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, otp }),
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        otp,
+        phoneModel: devInfo.phoneModel,
+        osName: devInfo.osName,
+      }),
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
@@ -276,16 +285,53 @@ class AuthService {
    */
   async loginWithEmail(email: string, password: string): Promise<AuthResponse> {
     const baseUrl = getApiBaseUrl();
+    const devInfo = getDeviceInfo();
     const res = await fetch(`${baseUrl}/api/auth/login-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({
+        email,
+        password,
+        phoneModel: devInfo.phoneModel,
+        osName: devInfo.osName,
+      }),
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.message || 'Login failed');
     }
     return data;
+  }
+
+  /**
+   * Send active telemetry & device heartbeat to backend
+   * Updates lastActiveAt, phoneModel, osName, and increments usage duration
+   */
+  async sendHeartbeat(activeSeconds: number = 30): Promise<boolean> {
+    try {
+      const token = await AsyncStorage.getItem('@elwo_access_token');
+      if (!token) return false;
+
+      const baseUrl = getApiBaseUrl();
+      const devInfo = getDeviceInfo();
+
+      const res = await fetch(`${baseUrl}/api/users/heartbeat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          phoneModel: devInfo.phoneModel,
+          osName: devInfo.osName,
+          activeSeconds,
+        }),
+      });
+
+      return res.ok;
+    } catch {
+      return false;
+    }
   }
 }
 

@@ -206,6 +206,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [authState, guestSession, handleGuestExpired]);
 
+  // Periodic user activity heartbeat & device telemetry (every 30 seconds while logged in)
+  useEffect(() => {
+    if (authState === 'AUTHENTICATED' && user) {
+      // Send initial heartbeat
+      authService.sendHeartbeat(15);
+
+      const heartbeatInterval = setInterval(() => {
+        authService.sendHeartbeat(30);
+      }, 30000);
+
+      return () => {
+        clearInterval(heartbeatInterval);
+      };
+    }
+  }, [authState, user]);
+
   const loginWithGoogle = async (): Promise<{ onboardingCompleted: boolean; user: User | null }> => {
     try {
       setIsLoading(true);

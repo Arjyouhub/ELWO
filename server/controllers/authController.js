@@ -98,8 +98,9 @@ exports.registerSendOtp = async (req, res) => {
 
 exports.registerVerifyOtp = async (req, res) => {
   try {
-    const { name, email, password, otp } = req.body;
-    const result = await authService.verifyRegistrationOtp(name, email, password, otp);
+    const { name, email, password, otp, phoneModel, osName } = req.body;
+    const deviceInfo = { phoneModel, osName };
+    const result = await authService.verifyRegistrationOtp(name, email, password, otp, deviceInfo);
     return res.status(201).json(result);
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -108,8 +109,9 @@ exports.registerVerifyOtp = async (req, res) => {
 
 exports.loginEmail = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const result = await authService.loginWithEmail(email, password);
+    const { email, password, phoneModel, osName } = req.body;
+    const deviceInfo = { phoneModel, osName };
+    const result = await authService.loginWithEmail(email, password, deviceInfo);
     return res.status(200).json(result);
   } catch (error) {
     if (error.message === 'USER_BLOCKED') {

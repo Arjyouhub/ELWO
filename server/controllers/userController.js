@@ -63,3 +63,35 @@ exports.updatePreferences = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.recordHeartbeat = async (req, res) => {
+  try {
+    const { phoneModel, osName, activeSeconds } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.lastActiveAt = new Date();
+    if (phoneModel && typeof phoneModel === 'string' && phoneModel.trim()) {
+      user.phoneModel = phoneModel.trim();
+    }
+    if (osName && typeof osName === 'string' && osName.trim()) {
+      user.osName = osName.trim();
+    }
+    const deltaSeconds = Math.max(0, Math.min(300, parseInt(activeSeconds, 10) || 30));
+    user.usageDurationSeconds = (user.usageDurationSeconds || 0) + deltaSeconds;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      lastActiveAt: user.lastActiveAt,
+      usageDurationSeconds: user.usageDurationSeconds,
+      phoneModel: user.phoneModel,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+

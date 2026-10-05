@@ -14,6 +14,7 @@ router.get('/dashboard', adminController.getDashboard);
 router.get('/users', adminController.getUsers);
 router.post('/users/:userId/block', requireRole(['SUPER_ADMIN', 'ADMIN']), adminController.blockUser);
 router.post('/users/:userId/unblock', requireRole(['SUPER_ADMIN', 'ADMIN']), adminController.unblockUser);
+router.delete('/users/:userId', requireRole(['SUPER_ADMIN', 'ADMIN']), adminController.deleteUser);
 
 router.get('/payments', requireRole(['SUPER_ADMIN', 'ADMIN']), adminController.getPayments);
 router.get('/subscriptions', adminController.getSubscriptions);

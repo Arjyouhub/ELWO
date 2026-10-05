@@ -100,6 +100,7 @@ exports.getUsers = async (req, res) => {
     else if (filter === 'Expired') query.subscriptionStatus = 'EXPIRED';
 
     const users = await User.find(query)
+      .select('-passwordHash')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit, 10));
@@ -175,6 +176,54 @@ exports.unblockUser = async (req, res) => {
       success: true,
       message: 'User unblocked successfully',
       user
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Safety: prevent deleting SUPER_ADMIN accounts
+    if (user.role === 'SUPER_ADMIN') {
+      return res.status(403).json({ success: false, message: 'Super Admin accounts cannot be deleted.' });
+    }
+
+    const userName = user.name;
+    const userEmail = user.email;
+
+    await User.findByIdAndDelete(userId);
+
+    // Clean up associated user telemetry / guest data if present
+    try {
+      const ListeningEvent = require('../models/ListeningEvent');
+      await ListeningEvent.deleteMany({ userId });
+    } catch {}
+
+    try {
+      const GuestSession = require('../models/GuestSession');
+      await GuestSession.deleteMany({ userId });
+    } catch {}
+
+    await AuditLog.create({
+      action: 'USER_DELETED',
+      adminId: String(req.admin._id),
+      adminEmail: req.admin.email,
+      targetId: String(userId),
+      targetType: 'USER',
+      details: { userName, userEmail, deletedAt: new Date() }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `User ${userName} (${userEmail || 'No email'}) permanently deleted`
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

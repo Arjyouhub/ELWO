@@ -732,6 +732,81 @@
       color: #000;
     }
 
+    .btn-delete {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      margin-left: 6px;
+    }
+
+    .btn-delete:hover {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    .active-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .active-badge.live {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .active-badge.recent {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .active-badge.today {
+      background: rgba(147, 197, 253, 0.15);
+      color: #93c5fd;
+      border: 1px solid rgba(147, 197, 253, 0.3);
+    }
+
+    .active-badge.offline {
+      background: rgba(156, 163, 175, 0.15);
+      color: #9ca3af;
+      border: 1px solid rgba(156, 163, 175, 0.3);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+      animation: pulseAnim 1.8s infinite;
+    }
+
+    @keyframes pulseAnim {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .usage-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(168, 85, 247, 0.12);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.25);
+    }
+
     .health-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -1316,15 +1391,17 @@
               <thead>
                 <tr>
                   <th>User</th>
+                  <th>Phone Model</th>
+                  <th>Active Time</th>
+                  <th>Usage Time</th>
                   <th>Status</th>
                   <th>Subscription</th>
                   <th>Joined</th>
-                  <th>Last Active</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="users-tbody">
-                <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading users...</td></tr>
+                <tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Loading users...</td></tr>
               </tbody>
             </table>
           </div>
@@ -1775,6 +1852,39 @@
       }, 300);
     }
 
+    function formatActiveTime(lastActiveAt) {
+      if (!lastActiveAt) return '<span class="active-badge offline">Never</span>';
+      const date = new Date(lastActiveAt);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffSec = Math.floor(diffMs / 1000);
+      const diffMin = Math.floor(diffSec / 60);
+      const diffHrs = Math.floor(diffMin / 60);
+
+      if (diffSec < 120) {
+        return '<span class="active-badge live"><span class="pulse-dot"></span> Active Now</span>';
+      }
+      if (diffMin < 60) {
+        return `<span class="active-badge recent">● ${diffMin}m ago</span>`;
+      }
+      if (diffHrs < 24 && date.getDate() === now.getDate()) {
+        const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `<span class="active-badge today">Today ${timeStr}</span>`;
+      }
+      return `<span style="color: var(--text-muted); font-size: 12px;">${date.toLocaleDateString()}</span>`;
+    }
+
+    function formatUsageTime(seconds) {
+      const s = parseInt(seconds, 10) || 0;
+      if (s === 0) return '<span style="color: var(--text-muted); font-size: 12px;">0m</span>';
+      if (s < 60) return `<span class="usage-badge">⏱️ ${s}s</span>`;
+      const mins = Math.floor(s / 60);
+      if (mins < 60) return `<span class="usage-badge">⏱️ ${mins}m</span>`;
+      const hours = Math.floor(mins / 60);
+      const remMins = mins % 60;
+      return `<span class="usage-badge">⏱️ ${hours}h ${remMins}m</span>`;
+    }
+
     async function loadUsers(filter = 'All') {
       currentFilter = filter;
       document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -1783,12 +1893,12 @@
 
       const search = document.getElementById('user-search').value;
       const tbody = document.getElementById('users-tbody');
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Fetching users...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Fetching users...</td></tr>`;
 
       try {
         const data = await apiFetch(`/api/admin/users?filter=${filter}&search=${encodeURIComponent(search)}`);
         if (!data.users || data.users.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No users found.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">No users found.</td></tr>`;
           return;
         }
 
@@ -1798,20 +1908,26 @@
               <div style="font-weight: 600; color: #fff;">${escapeHtml(user.name || 'Anonymous')}</div>
               <div style="color: var(--text-muted); font-size: 11px;">${escapeHtml(user.email || 'No email')}</div>
             </td>
+            <td>
+              <div style="font-weight: 600; color: #e5e7eb; font-size: 12px;">📱 ${escapeHtml(user.phoneModel || 'Mobile Device')}</div>
+              ${user.osName ? `<div style="color: var(--text-muted); font-size: 10px;">${escapeHtml(user.osName)}</div>` : ''}
+            </td>
+            <td>${formatActiveTime(user.lastActiveAt)}</td>
+            <td>${formatUsageTime(user.usageDurationSeconds)}</td>
             <td><span class="status-badge status-${user.status}">${user.status}</span></td>
             <td><span class="status-badge status-${user.subscriptionStatus || 'FREE'}">${user.subscriptionStatus || 'FREE'}</span></td>
-            <td style="color: var(--text-muted);">${new Date(user.createdAt).toLocaleDateString()}</td>
-            <td style="color: var(--text-muted);">${user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleTimeString() : 'Never'}</td>
-            <td>
+            <td style="color: var(--text-muted); font-size: 12px;">${new Date(user.createdAt).toLocaleDateString()}</td>
+            <td style="white-space: nowrap;">
               ${user.status === 'BLOCKED'
                 ? `<button class="action-btn btn-unblock" onclick="unblockUser('${user._id}')">Unblock</button>`
                 : `<button class="action-btn btn-block" onclick="blockUser('${user._id}')">Block</button>`
               }
+              <button class="action-btn btn-delete" onclick="deleteUser('${user._id}', '${escapeHtml(user.name)}')">Delete</button>
             </td>
           </tr>
         `).join('');
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">Failed to load users</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger);">Failed to load users</td></tr>`;
       }
     }
 
@@ -1842,6 +1958,24 @@
         }
       } catch (err) {
         alert(err.message);
+      }
+    }
+
+    async function deleteUser(userId, userName) {
+      const confirmed = confirm(`⚠️ Are you sure you want to permanently delete user "${userName || 'User'}"?\n\nThis will remove their profile and all telemetry permanently.`);
+      if (!confirmed) return;
+      try {
+        const res = await apiFetch(`/api/admin/users/${userId}`, {
+          method: 'DELETE'
+        });
+        if (res.success) {
+          alert(`User "${userName || 'User'}" deleted successfully.`);
+          loadUsers(currentFilter);
+        } else {
+          alert(res.message || 'Failed to delete user.');
+        }
+      } catch (err) {
+        alert(err.message || 'Failed to delete user.');
       }
     }
 

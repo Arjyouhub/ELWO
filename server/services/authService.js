@@ -34,12 +34,16 @@ class BackendAuthService {
         role: 'USER',
         status: 'ACTIVE',
         subscriptionStatus: 'NONE',
+        phoneModel: deviceInfo?.phoneModel || 'Mobile Device',
+        osName: deviceInfo?.osName || null,
       });
       await user.save();
     } else {
       user.lastLoginAt = new Date();
       user.lastActiveAt = new Date();
       if (!user.name && name) user.name = name;
+      if (deviceInfo?.phoneModel) user.phoneModel = deviceInfo.phoneModel.trim();
+      if (deviceInfo?.osName) user.osName = deviceInfo.osName.trim();
       await user.save();
     }
 
@@ -160,7 +164,7 @@ class BackendAuthService {
   /**
    * Verify OTP and complete registration
    */
-  async verifyRegistrationOtp(name, email, password, otp) {
+  async verifyRegistrationOtp(name, email, password, otp, deviceInfo = {}) {
     if (!name || name.trim().length === 0) {
       throw new Error('Please enter your name');
     }
@@ -207,12 +211,16 @@ class BackendAuthService {
         role: 'USER',
         status: 'ACTIVE',
         subscriptionStatus: 'NONE',
+        phoneModel: deviceInfo?.phoneModel || 'Mobile Device',
+        osName: deviceInfo?.osName || null,
       });
     } else {
       user.name = name.trim();
       user.passwordHash = passwordHash;
       user.emailVerified = true;
       user.status = 'ACTIVE';
+      if (deviceInfo?.phoneModel) user.phoneModel = deviceInfo.phoneModel.trim();
+      if (deviceInfo?.osName) user.osName = deviceInfo.osName.trim();
     }
 
     user.lastLoginAt = new Date();
@@ -247,7 +255,7 @@ class BackendAuthService {
   /**
    * Regular Login with Email and Password
    */
-  async loginWithEmail(email, password) {
+  async loginWithEmail(email, password, deviceInfo = {}) {
     if (!email || !password) {
       throw new Error('Email and password are required');
     }
@@ -273,6 +281,8 @@ class BackendAuthService {
 
     user.lastLoginAt = new Date();
     user.lastActiveAt = new Date();
+    if (deviceInfo?.phoneModel) user.phoneModel = deviceInfo.phoneModel.trim();
+    if (deviceInfo?.osName) user.osName = deviceInfo.osName.trim();
     await user.save();
 
     const accessToken = jwt.sign(

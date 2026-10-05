@@ -7,5 +7,6 @@ router.get('/me', verifyToken, userController.getMe);
 router.patch('/me', verifyToken, userController.updateMe);
 router.patch('/preferences', verifyToken, userController.updatePreferences);
 router.post('/preferences', verifyToken, userController.updatePreferences);
+router.post('/heartbeat', verifyToken, userController.recordHeartbeat);
 
 module.exports = router;

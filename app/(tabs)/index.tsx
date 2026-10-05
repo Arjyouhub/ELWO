@@ -185,10 +185,6 @@ export default function HomeScreen() {
     () => homeCatalog?.popular || [],
     [homeCatalog]
   );
-  const classicsTracks = useMemo(
-    () => homeCatalog?.classics || [],
-    [homeCatalog]
-  );
 
   // 1. "Made for you" — Personalized weighted recommendation scoring
   const madeForYouTracks = useMemo(() => {
@@ -379,31 +375,7 @@ export default function HomeScreen() {
           </>
         )}
 
-        {/* 6. Classics & Nostalgia (Preserving Old Songs) */}
-        {classicsTracks.length > 0 && (
-          <>
-            <ELWOSectionHeader
-              title="Classics & Nostalgia"
-              subtitle="Timeless golden tracks and evergreen melodies"
-            />
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalRow}
-              bounces={false}>
-              {classicsTracks.map((track) => (
-                <MusicCard
-                  key={`classic-${track.id}`}
-                  track={track}
-                  badge={track.year || 'Classic'}
-                  onPress={() => playTrack(track, classicsTracks)}
-                />
-              ))}
-            </ScrollView>
-          </>
-        )}
-
-        {/* 7. Made for you (Recommendation Engine) */}
+        {/* 6. Made for you (Recommendation Engine) */}
         {madeForYouTracks.length > 0 && (
           <>
             <ELWOSectionHeader

@@ -10,6 +10,7 @@ const auditLogSchema = new mongoose.Schema(
         'ADMIN_LOGIN',
         'USER_BLOCKED',
         'USER_UNBLOCKED',
+        'USER_DELETED',
         'COUPON_CREATED',
         'COUPON_EDITED',
         'COUPON_DISABLED',
