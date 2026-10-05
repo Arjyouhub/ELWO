@@ -217,12 +217,12 @@ export default function HomeScreen() {
         {/* Nostalgic Kerala Ambience ASMR Soundscape Banner (Shown ONLY when top Ambience button is clicked) */}
         {isBannerVisible && <ChayakadaBanner />}
 
-        {/* 1. Pick up where you left off */}
+        {/* 1. Recently Listened */}
         {recentlyPlayed && recentlyPlayed.length > 0 && (
           <>
             <ELWOSectionHeader
-              title="Pick up where you left off"
-              subtitle="തുടർന്ന് കേൾക്കാം • Your recent listening"
+              title="Recently Listened"
+              subtitle="Your recent listening"
             />
             <ScrollView
               horizontal
@@ -243,7 +243,7 @@ export default function HomeScreen() {
         {/* 2. Made for you */}
         <ELWOSectionHeader
           title="Made for you"
-          subtitle="നിങ്ങൾക്കായി തിരഞ്ഞെടുത്തവ • Tuned to your taste"
+          subtitle="Tuned to your taste"
         />
         <ScrollView
           horizontal
@@ -263,7 +263,7 @@ export default function HomeScreen() {
         {/* 3. Fresh Drops */}
         <ELWOSectionHeader
           title="Fresh Drops"
-          subtitle={`പുതിയ പാട്ടുകൾ • Latest ${selectedLanguage !== 'All' ? selectedLanguage : ''} releases`}
+          subtitle={`Latest ${selectedLanguage !== 'All' ? selectedLanguage : ''} releases`}
         />
         <ScrollView
           horizontal

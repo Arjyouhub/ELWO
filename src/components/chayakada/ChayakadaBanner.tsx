@@ -54,7 +54,7 @@ export const ChayakadaBanner: React.FC = () => {
                 styles.categoryTabText,
                 ambientTab === 'chayakada' && styles.categoryTabTextActive,
               ]}>
-              ചായക്കട
+              Tea Stall
             </Text>
           </Pressable>
 
@@ -75,7 +75,7 @@ export const ChayakadaBanner: React.FC = () => {
                 styles.categoryTabText,
                 ambientTab === 'bus' && styles.categoryTabTextActive,
               ]}>
-              ബസ് യാത്ര
+              Bus Travel
             </Text>
           </Pressable>
 
@@ -96,7 +96,7 @@ export const ChayakadaBanner: React.FC = () => {
                 styles.categoryTabText,
                 ambientTab === 'train' && styles.categoryTabTextActive,
               ]}>
-              ട്രെയിൻ
+              Train
             </Text>
           </Pressable>
         </View>
@@ -191,7 +191,7 @@ export const ChayakadaBanner: React.FC = () => {
                     styles.presetText,
                     isSelected && styles.presetTextActive,
                   ]}>
-                  {preset.malayalam}
+                  {preset.name}
                 </Text>
               </Pressable>
             );
