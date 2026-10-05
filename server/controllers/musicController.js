@@ -16,6 +16,29 @@ function parseLanguages(langParam) {
   return split;
 }
 
+function formatTrack(t) {
+  if (!t) return t;
+  const now = Date.now();
+  const addedMs = t.addedAt ? new Date(t.addedAt).getTime() : 0;
+  const isRecentlyAdded = (now - addedMs) < 14 * 24 * 60 * 60 * 1000;
+  let isRecentlyReleased = false;
+  if (t.releaseDate) {
+    const relMs = new Date(t.releaseDate).getTime();
+    if (!isNaN(relMs)) {
+      isRecentlyReleased = (now - relMs) < 45 * 24 * 60 * 60 * 1000;
+    }
+  }
+  return {
+    ...t,
+    id: t._id ? t._id.toString() : t.providerTrackId,
+    artist: t.artistName,
+    album: t.albumTitle,
+    artwork: t.artworkUrl,
+    audioSource: t.streamUrl,
+    isNew: isRecentlyAdded || isRecentlyReleased,
+  };
+}
+
 // ----------------------------------------------------
 // PUBLIC MOBILE APP CATALOG ENDPOINTS
 // ----------------------------------------------------
@@ -106,12 +129,12 @@ exports.getHomeData = async (req, res) => {
     return res.status(200).json({
       success: true,
       languages,
-      newReleases,
-      newlyAdded,
-      trending,
-      popular,
-      classics,
-      recommended,
+      newReleases: newReleases.map(formatTrack),
+      newlyAdded: newlyAdded.map(formatTrack),
+      trending: trending.map(formatTrack),
+      popular: popular.map(formatTrack),
+      classics: classics.map(formatTrack),
+      recommended: recommended.map(formatTrack),
       artists,
     });
   } catch (err) {
@@ -143,7 +166,7 @@ exports.getNewlyAdded = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      tracks,
+      tracks: tracks.map(formatTrack),
       pagination: {
         page,
         limit,
@@ -179,7 +202,7 @@ exports.getNewReleases = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      tracks,
+      tracks: tracks.map(formatTrack),
       pagination: {
         page,
         limit,
@@ -219,7 +242,7 @@ exports.getTracks = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      tracks,
+      tracks: tracks.map(formatTrack),
       pagination: {
         page,
         limit,
@@ -267,7 +290,7 @@ exports.searchTracks = async (req, res) => {
       success: true,
       query: q,
       count: tracks.length,
-      tracks,
+      tracks: tracks.map(formatTrack),
     });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
