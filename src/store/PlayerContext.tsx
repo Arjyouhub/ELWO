@@ -54,17 +54,18 @@ interface PlayerContextType {
   addToQueue: (track: Track) => void;
   setVolume: (volume: number) => void;
   clearRecentlyPlayed: () => void;
+  resetPlayerState: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
 export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(MOCK_TRACKS[0]);
+  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [position, setPosition] = useState<number>(0);
-  const [duration, setDuration] = useState<number>(MOCK_TRACKS[0].duration);
+  const [duration, setDuration] = useState<number>(0);
   const [isBuffering, setIsBuffering] = useState<boolean>(false);
-  const [queue, setQueue] = useState<Track[]>(MOCK_TRACKS);
+  const [queue, setQueue] = useState<Track[]>([]);
   const [queueIndex, setQueueIndex] = useState<number>(0);
   const [isShuffle, setIsShuffle] = useState<boolean>(false);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>('off');
@@ -398,6 +399,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const togglePlay = () => {
+    if (!currentTrack) return;
     try {
       if (!playerRef.current && currentTrack?.streamUrl) {
         playTrack(currentTrack);
@@ -520,6 +522,29 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     AsyncStorage.removeItem('@elwo_recently_played').catch(() => {});
   }, []);
 
+  const resetPlayerState = useCallback(() => {
+    try {
+      if (playerRef.current) {
+        playerRef.current.pause();
+        playerRef.current.remove();
+        playerRef.current = null;
+      }
+    } catch {}
+    setCurrentTrack(null);
+    currentTrackRef.current = null;
+    setIsPlaying(false);
+    setPosition(0);
+    positionRef.current = 0;
+    setDuration(0);
+    setQueue([]);
+    queueRef.current = [];
+    setQueueIndex(0);
+    queueIndexRef.current = 0;
+    setRecentlyPlayed([]);
+    setFullPlayerVisible(false);
+    AsyncStorage.removeItem('@elwo_recently_played').catch(() => {});
+  }, []);
+
   return (
     <PlayerContext.Provider
       value={{
@@ -550,6 +575,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         addToQueue,
         setVolume,
         clearRecentlyPlayed,
+        resetPlayerState,
       }}>
       {children}
     </PlayerContext.Provider>

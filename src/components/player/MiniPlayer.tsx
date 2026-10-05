@@ -41,14 +41,9 @@ export const MiniPlayer: React.FC = () => {
           <Text numberOfLines={1} style={styles.title}>
             {currentTrack.title}
           </Text>
-          <View style={styles.artistRow}>
-            <Text numberOfLines={1} style={styles.artist}>
-              {currentTrack.artistName}
-            </Text>
-            <View style={styles.hqBadge}>
-              <Text style={styles.hqText}>HQ</Text>
-            </View>
-          </View>
+          <Text numberOfLines={1} style={styles.artist}>
+            {currentTrack.artistName}
+          </Text>
         </View>
 
         {/* Controls Cluster */}
@@ -163,29 +158,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.dark.text,
   },
-  artistRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 2,
-  },
   artist: {
     fontSize: 10,
     color: Colors.dark.textSecondary,
     flexShrink: 1,
-  },
-  hqBadge: {
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 3,
-    backgroundColor: 'rgba(139, 92, 246, 0.15)',
-    borderWidth: 0.5,
-    borderColor: 'rgba(139, 92, 246, 0.35)',
-  },
-  hqText: {
-    fontSize: 8,
-    fontWeight: '800',
-    color: Colors.dark.primary,
+    marginTop: 2,
   },
   controlsCluster: {
     flexDirection: 'row',

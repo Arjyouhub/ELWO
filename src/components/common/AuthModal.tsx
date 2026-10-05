@@ -55,7 +55,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
     setShowAuthModal,
     isGuestExpired,
   } = useAuth();
-  const { clearRecentlyPlayed } = usePlayer();
+  const { clearRecentlyPlayed, resetPlayerState } = usePlayer();
   const { clearLibrary } = useLibrary();
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState<'auth' | 'language'>('auth');
@@ -151,6 +151,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
       setIsSubmitting(true);
       const res = await loginWithEmailPassword(email.trim(), password);
       if (res.user) {
+        resetPlayerState();
+        clearLibrary();
         const onboarded = await AsyncStorage.getItem('@elwo_language_onboarded');
         if (!onboarded) {
           setStep('language');
@@ -204,6 +206,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
       setIsSubmitting(true);
       const res = await verifyRegistrationAndLogin(name.trim(), email.trim(), password, otp.trim());
       if (res.user) {
+        resetPlayerState();
+        clearLibrary();
         setSelectedLanguages(['Malayalam']);
         setStep('language');
       }
@@ -216,6 +220,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
 
   const handleGoogleLogin = async () => {
     await loginWithGoogle();
+    resetPlayerState();
+    clearLibrary();
     const onboarded = await AsyncStorage.getItem('@elwo_language_onboarded');
     if (!onboarded) {
       setStep('language');
@@ -227,6 +233,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
 
   const handleGuest = async () => {
     await continueAsGuest();
+    resetPlayerState();
+    clearLibrary();
     const onboarded = await AsyncStorage.getItem('@elwo_language_onboarded');
     if (!onboarded) {
       setStep('language');
@@ -266,7 +274,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
     } catch {}
 
     recommendationEngine.resetForNewUser(finalLanguages);
-    clearRecentlyPlayed();
+    resetPlayerState();
     clearLibrary();
 
     if (onLanguageSelected) {

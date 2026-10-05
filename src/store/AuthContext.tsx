@@ -80,6 +80,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         AsyncStorage.removeItem(GUEST_SESSION_KEY),
         AsyncStorage.removeItem(ACCESS_TOKEN_KEY),
         AsyncStorage.removeItem(REFRESH_TOKEN_KEY),
+        AsyncStorage.removeItem('@elwo_recently_played'),
+        AsyncStorage.removeItem('@elwo_liked_tracks_list'),
+        AsyncStorage.removeItem('@elwo_user_listening_profile'),
       ]);
 
       setShowAuthModal(true);
@@ -384,6 +387,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setGuestRemainingSeconds(0);
     setAuthState('UNAUTHENTICATED');
     await authService.resetLocalAuthState();
+    await AsyncStorage.multiRemove([
+      '@elwo_recently_played',
+      '@elwo_liked_tracks_list',
+      '@elwo_user_listening_profile',
+    ]);
     setShowAuthModal(true);
   };
 

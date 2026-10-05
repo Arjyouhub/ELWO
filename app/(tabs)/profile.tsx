@@ -16,6 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '../../src/constants/theme';
 import { usePreferences } from '../../src/store/PreferencesContext';
 import { useAuth } from '../../src/store/AuthContext';
+import { usePlayer } from '../../src/store/PlayerContext';
+import { useLibrary } from '../../src/store/LibraryContext';
 import { EditProfileModal } from '../../src/components/common/EditProfileModal';
 import { AuthModal } from '../../src/components/common/AuthModal';
 
@@ -27,6 +29,8 @@ export default function ProfileScreen() {
   );
   
   const { user, isGuest, logout, showAuthModal, setShowAuthModal, guestRemainingSeconds } = useAuth();
+  const { resetPlayerState } = usePlayer();
+  const { clearLibrary } = useLibrary();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
   const formatTimer = (sec: number) => {
@@ -67,6 +71,8 @@ export default function ProfileScreen() {
           text: 'Log Out',
           style: 'destructive',
           onPress: async () => {
+            resetPlayerState();
+            clearLibrary();
             await logout();
           },
         },
