@@ -199,6 +199,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
       setIsSubmitting(true);
       const res = await verifyRegistrationAndLogin(name.trim(), email.trim(), password, otp.trim());
       if (res.user) {
+        setSelectedLanguages(['Malayalam']);
         setStep('language');
       }
     } catch (err: any) {
@@ -262,6 +263,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
       onDismiss();
     }
     setShowAuthModal(false);
+    setStep('auth');
   };
 
   return (
@@ -422,7 +424,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                         setSuccessMessage(null);
                       }}>
                       <Text style={[styles.segmentedTabText, authTab === 'signup' && styles.segmentedTabTextActive]}>
-                        Sign Up (OTP)
+                        Sign Up
                       </Text>
                     </Pressable>
                   </View>
@@ -759,11 +761,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ visible, onDismiss, onLang
                 </LinearGradient>
               </Pressable>
 
-              {/* Switch back to Auth option */}
+              {/* Quick continue / skip option */}
               <Pressable
                 style={styles.backToAuthBtn}
-                onPress={() => setStep('auth')}>
-                <Text style={styles.backToAuthText}>Change login method</Text>
+                onPress={async () => {
+                  if (selectedLanguages.length === 0) {
+                    setSelectedLanguages(['Malayalam']);
+                  }
+                  await handleFinishLanguage();
+                }}>
+                <Text style={styles.backToAuthText}>Skip & Start Listening</Text>
               </Pressable>
             </View>
           )}

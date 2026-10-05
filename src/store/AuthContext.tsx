@@ -88,12 +88,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Initialize and calibrate server time, then evaluate stored session
+  // Initialize auth session: restore stored user session immediately across restarts
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        await authService.calibrateServerTime();
-
         const [storedUserJson, storedSessionJson] = await Promise.all([
           AsyncStorage.getItem(AUTH_USER_KEY),
           AsyncStorage.getItem(GUEST_SESSION_KEY),
@@ -108,17 +106,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
           }
 
-          if (
-            parsedUser.role !== undefined &&
-            (parsedUser.email || parsedUser.googleId || (parsedUser._id && !parsedUser._id.startsWith('guest_')))
-          ) {
-            // Authenticated User (Email/Password or Account)
+          const isRegisteredUser = Boolean(
+            parsedUser &&
+            (parsedUser.email ||
+             parsedUser.googleId ||
+             (parsedUser._id && !parsedUser._id.startsWith('guest_')))
+          );
+
+          if (isRegisteredUser) {
+            // Persistent Authenticated User session — stays logged in across restarts!
             setUser(parsedUser);
             setGuestSession(null);
+            setGuestRemainingSeconds(0);
             setAuthState('AUTHENTICATED');
             setShowAuthModal(false);
+            return;
           } else {
-            // Guest User: Verify 10-minute expiration with authoritative server time
+            // Guest User: Verify 10-minute expiration with calibrated server time
+            try {
+              await authService.calibrateServerTime();
+            } catch (timeErr) {
+              console.warn('Server time calibration skipped for guest:', timeErr);
+            }
+
             const parsedSession: GuestSession | null = storedSessionJson
               ? JSON.parse(storedSessionJson)
               : null;
@@ -136,14 +146,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               // Guest session expired
               await handleGuestExpired();
             }
+            return;
           }
-        } else {
-          // No session: fresh app state -> Login screen
-          setAuthState('UNAUTHENTICATED');
-          setUser(null);
-          setGuestSession(null);
-          setShowAuthModal(true);
         }
+
+        // No session: fresh app state -> Login screen
+        setAuthState('UNAUTHENTICATED');
+        setUser(null);
+        setGuestSession(null);
+        setShowAuthModal(true);
       } catch (e) {
         console.warn('Error initializing authentication:', e);
         setAuthState('UNAUTHENTICATED');
